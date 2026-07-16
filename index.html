@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rising Star Maker</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0d1a;
+      --panel:     #16162a;
+      --border:    #2e2e55;
+      --accent:    #c678ff;
+      --gold:      #ffd700;
+      --green:     #50fa7b;
+      --red:       #ff5555;
+      --yellow:    #f1fa8c;
+      --blue:      #8be9fd;
+      --text:      #e0e0f0;
+      --subtext:   #888ab0;
+      --radius:    12px;
+      --shadow:    0 4px 24px rgba(0,0,0,0.5);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 12px 40px;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+      text-shadow: 0 0 20px rgba(255,215,0,0.4);
+    }
+    .subtitle {
+      color: var(--subtext);
+      font-size: .9rem;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    #game-wrapper {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto 1fr auto;
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    @media (max-width: 640px) {
+      #game-wrapper { grid-template-columns: 1fr; }
+    }
+
+    /* ── Panel ────────────────────────────────────────────────── */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .panel-title {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--subtext);
+      margin-bottom: 14px;
+    }
+
+    /* ── Star Info ────────────────────────────────────────────── */
+    #star-panel { grid-column: 1; grid-row: 1 / 3; }
+
+    #star-avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #ff79c6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem;
+      margin: 0 auto 14px;
+      box-shadow: 0 0 24px rgba(198,120,255,0.5);
+      transition: transform .3s;
+    }
+    #star-avatar.pop { animation: pop .3s ease; }
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+
+    #star-name {
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    #star-title {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    /* ── Stat bars ────────────────────────────────────────────── */
+    .stat { margin-bottom: 12px; }
+    .stat-header {
+      display: flex; justify-content: space-between;
+      font-size: .82rem; margin-bottom: 4px;
+    }
+    .stat-label { color: var(--subtext); }
+    .stat-value { font-weight: 600; }
+    .bar-track {
+      height: 8px;
+      background: rgba(255,255,255,.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-fame    { background: linear-gradient(90deg, var(--gold), #ff79c6); }
+    .bar-talent  { background: linear-gradient(90deg, var(--blue), var(--accent)); }
+    .bar-stamina { background: linear-gradient(90deg, var(--green), #27c462); }
+    .bar-money   { background: linear-gradient(90deg, #f1fa8c, var(--gold)); }
+
+    #week-badge {
+      display: inline-block;
+      background: rgba(198,120,255,.15);
+      border: 1px solid var(--accent);
+      border-radius: 99px;
+      font-size: .75rem;
+      padding: 2px 12px;
+      color: var(--accent);
+      margin-top: 14px;
+    }
+
+    /* ── Actions ──────────────────────────────────────────────── */
+    #action-panel { grid-column: 2; grid-row: 1; }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 640px) {
+      #action-panel { grid-column: 1; }
+      #log-panel    { grid-column: 1; }
+    }
+
+    .action-btn {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 10px;
+      cursor: pointer;
+      transition: background .18s, border-color .18s, transform .12s;
+      text-align: left;
+      color: var(--text);
+    }
+    .action-btn:hover:not(:disabled) {
+      background: rgba(198,120,255,.12);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .action-btn:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+    .action-btn .a-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+    .action-btn .a-name { font-size: .9rem; font-weight: 600; display: block; }
+    .action-btn .a-desc { font-size: .72rem; color: var(--subtext); margin-top: 2px; display: block; }
+    .action-btn .a-cost {
+      font-size: .7rem;
+      color: var(--yellow);
+      margin-top: 6px;
+      display: block;
+    }
+
+    /* ── Event Log ────────────────────────────────────────────── */
+    #log-panel { grid-column: 2; grid-row: 2; }
+    #log-panel .panel-title { margin-bottom: 10px; }
+
+    #event-display {
+      min-height: 90px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: .88rem;
+      line-height: 1.55;
+      color: var(--yellow);
+      margin-bottom: 12px;
+    }
+    #event-display.good { color: var(--green); }
+    #event-display.bad  { color: var(--red);   }
+    #event-display.info { color: var(--blue);  }
+
+    #log-list {
+      list-style: none;
+      max-height: 140px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #log-list li {
+      font-size: .75rem;
+      color: var(--subtext);
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    #log-list li:last-child { border: none; }
+
+    /* ── Bottom bar ───────────────────────────────────────────── */
+    #bottom-bar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #fame-milestone {
+      font-size: .82rem;
+      color: var(--subtext);
+    }
+    #fame-milestone span { color: var(--gold); font-weight: 600; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #ff79c6);
+      border: none;
+      border-radius: 99px;
+      padding: 10px 26px;
+      font-size: .9rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(198,120,255,.4);
+      transition: opacity .18s, transform .12s;
+    }
+    .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 9px 22px;
+      font-size: .88rem;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: border-color .18s, color .18s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Modal ────────────────────────────────────────────────── */
+    #modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.visible { display: flex; }
+
+    #modal-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 48px rgba(0,0,0,.7);
+      animation: fadeUp .3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0);    }
+    }
+
+    #modal-emoji { font-size: 3.5rem; margin-bottom: 14px; }
+    #modal-title { font-size: 1.6rem; font-weight: 700; color: var(--gold); margin-bottom: 10px; }
+    #modal-body  { font-size: .9rem; color: var(--subtext); line-height: 1.6; margin-bottom: 24px; }
+    #modal-body strong { color: var(--text); }
+
+    /* ── Name input screen ────────────────────────────────────── */
+    #name-screen {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+    }
+    #name-screen h2 { font-size: 1.8rem; color: var(--gold); }
+    #name-screen p  { color: var(--subtext); font-size: .9rem; text-align: center; max-width: 360px; }
+    #name-input {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 1rem;
+      color: var(--text);
+      width: 280px;
+      outline: none;
+      transition: border-color .18s;
+    }
+    #name-input:focus { border-color: var(--accent); }
+
+    /* ── Milestone flash ──────────────────────────────────────── */
+    #milestone-flash {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--gold), #ff79c6);
+      color: #000;
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 10px 28px;
+      border-radius: 99px;
+      box-shadow: 0 0 32px rgba(255,215,0,.5);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .3s;
+      z-index: 50;
+      white-space: nowrap;
+    }
+    #milestone-flash.show {
+      opacity: 1;
+      animation: flashUp 2s ease forwards;
+    }
+    @keyframes flashUp {
+      0%   { opacity:0; transform:translateX(-50%) translateY(10px); }
+      15%  { opacity:1; transform:translateX(-50%) translateY(0); }
+      75%  { opacity:1; transform:translateX(-50%) translateY(0); }
+      100% { opacity:0; transform:translateX(-50%) translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Name Entry Screen -->
+<div id="name-screen">
+  <div style="font-size:3.5rem">🌟</div>
+  <h2>Rising Star Maker</h2>
+  <p>You've discovered a raw talent. Name your rising star and guide them to superstardom!</p>
+  <input id="name-input" type="text" maxlength="20" placeholder="Enter your star's name…" autocomplete="off" />
+  <button class="btn-primary" onclick="startGame()">Begin Journey</button>
+</div>
+
+<h1>🌟 Rising Star Maker</h1>
+<p class="subtitle">Guide your star from unknown talent to global superstar</p>
+
+<div id="game-wrapper">
+
+  <!-- Star Panel -->
+  <div class="panel" id="star-panel">
+    <div class="panel-title">Your Star</div>
+    <div id="star-avatar">🎤</div>
+    <div id="star-name">—</div>
+    <div id="star-title">Undiscovered Talent</div>
+
+    <div class="stat">
+      <div class="stat-header">
+        <span class="stat-label">⭐ Fame</span>
+        <span class="stat-value" id="val-fame">0</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-fame" id="bar-fame" style="width:0%"></div></div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-header">
+        <span class="stat-label">🎵 Talent</span>
+        <span class="stat-value" id="val-talent">0</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-talent" id="bar-talent" style="width:0%"></div></div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-header">
+        <span class="stat-label">⚡ Stamina</span>
+        <span class="stat-value" id="val-stamina">0</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-stamina" id="bar-stamina" style="width:0%"></div></div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-header">
+        <span class="stat-label">💰 Money</span>
+        <span class="stat-value" id="val-money">$0</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-money" id="bar-money" style="width:0%"></div></div>
+    </div>
+
+    <div style="text-align:center">
+      <span id="week-badge">Week 1</span>
+    </div>
+  </div>
+
+  <!-- Actions Panel -->
+  <div class="panel" id="action-panel">
+    <div class="panel-title">Choose an Action</div>
+    <div class="action-grid" id="action-grid">
+
+      <button class="action-btn" onclick="doAction('practice')">
+        <span class="a-icon">🎸</span>
+        <span class="a-name">Practice</span>
+        <span class="a-desc">Improve your skills. Higher talent unlocks better opportunities.</span>
+        <span class="a-cost">+Talent  −10 Stamina</span>
+      </button>
+
+      <button class="action-btn" onclick="doAction('perform')">
+        <span class="a-icon">🎭</span>
+        <span class="a-name">Perform</span>
+        <span class="a-desc">Take the stage! Earn fame and money, but it's exhausting.</span>
+        <span class="a-cost">+Fame  +Money  −20 Stamina</span>
+      </button>
+
+      <button class="action-btn" onclick="doAction('network')">
+        <span class="a-icon">🤝</span>
+        <span class="a-name">Network</span>
+        <span class="a-desc">Build industry connections for bigger deals and viral moments.</span>
+        <span class="a-cost">+Fame  −$500  −10 Stamina</span>
+      </button>
+
+      <button class="action-btn" onclick="doAction('rest')">
+        <span class="a-icon">😴</span>
+        <span class="a-name">Rest</span>
+        <span class="a-desc">Recover stamina. A well-rested star performs at their best.</span>
+        <span class="a-cost">+40 Stamina</span>
+      </button>
+
+      <button class="action-btn" onclick="doAction('collab')">
+        <span class="a-icon">🎙️</span>
+        <span class="a-name">Collaborate</span>
+        <span class="a-desc">Feature on another artist's track. Big fame boost if it works!</span>
+        <span class="a-cost">+Fame  −$1000  Requires Talent ≥30</span>
+      </button>
+
+      <button class="action-btn" onclick="doAction('tour')">
+        <span class="a-icon">🚌</span>
+        <span class="a-name">Go on Tour</span>
+        <span class="a-desc">Hit the road for a week. Massive rewards — and exhaustion.</span>
+        <span class="a-cost">+Big Fame  +Big Money  −40 Stamina  Requires Fame ≥25</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Event Log Panel -->
+  <div class="panel" id="log-panel">
+    <div class="panel-title">📰 Latest News</div>
+    <div id="event-display">Your journey begins… Make your first move!</div>
+    <ul id="log-list"></ul>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div id="bottom-bar">
+    <div id="fame-milestone">Next milestone: <span id="next-milestone-label">Local Celebrity</span> at <span id="next-milestone-val">25</span> fame</div>
+    <div>
+      <button class="btn-secondary" onclick="showHelp()" style="margin-right:8px">How to Play</button>
+      <button class="btn-secondary" onclick="confirmReset()">New Game</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-emoji">🌟</div>
+    <div id="modal-title">Title</div>
+    <div id="modal-body">Body</div>
+    <div id="modal-btns"></div>
+  </div>
+</div>
+
+<!-- Milestone Flash -->
+<div id="milestone-flash"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════════════════════ */
+const MAX = 100;
+const MAX_MONEY = 50000;
+const WEEK_LIMIT = 52; // one in-game year
+
+const MILESTONES = [
+  { fame: 10,  title: "Local Act",          avatar: "🎵" },
+  { fame: 25,  title: "Local Celebrity",    avatar: "🎤" },
+  { fame: 45,  title: "Regional Star",      avatar: "🎶" },
+  { fame: 65,  title: "National Sensation", avatar: "🌠" },
+  { fame: 85,  title: "Global Icon",        avatar: "🌟" },
+  { fame: 100, title: "Superstar",          avatar: "👑" },
+];
+
+const RANDOM_EVENTS = [
+  // Good
+  { type:"good", text:"🎉 A viral video clip sends your star trending! +15 Fame", fame:+15 },
+  { type:"good", text:"📺 A major TV channel invites you for an interview! +10 Fame", fame:+10 },
+  { type:"good", text:"💿 An old demo surfaces and fans go wild! +8 Fame, +$2000", fame:+8, money:+2000 },
+  { type:"good", text:"🏆 You win an underground music award! +12 Fame, +10 Talent", fame:+12, talent:+10 },
+  { type:"good", text:"🎵 A famous DJ remixes one of your tracks! +10 Fame", fame:+10 },
+  { type:"good", text:"📰 A top music blog features your work! +8 Fame", fame:+8 },
+  { type:"good", text:"💰 A brand sponsorship deal lands in your inbox! +$3000", money:+3000 },
+  { type:"good", text:"🤩 A celebrity fan tweets about you — you blow up! +20 Fame", fame:+20 },
+  // Bad
+  { type:"bad",  text:"😤 A tabloid runs a negative story. −8 Fame", fame:-8 },
+  { type:"bad",  text:"🤧 Your star falls ill for a week. −25 Stamina", stamina:-25 },
+  { type:"bad",  text:"💸 Equipment breakdown costs money. −$1500", money:-1500 },
+  { type:"bad",  text:"📉 A poorly-timed post causes backlash. −10 Fame", fame:-10 },
+  { type:"bad",  text:"🎙️ Mic failure at a live show embarrasses everyone. −8 Fame, −10 Talent", fame:-8, talent:-10 },
+  // Neutral
+  { type:"info", text:"☕ A quiet week with nothing major happening. Steady as she goes.", },
+  { type:"info", text:"📬 Fan mail arrives — your star is touched! +5 Stamina", stamina:+5 },
+  { type:"info", text:"🌤️ Inspiration strikes during a walk. +5 Talent", talent:+5 },
+];
+
+let state = {};
+
+function newState(name) {
+  return {
+    name,
+    fame:    10,
+    talent:  20,
+    stamina: 80,
+    money:   2000,
+    week:    1,
+    log:     [],
+    titleIndex: 0,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CORE GAME LOGIC
+═══════════════════════════════════════════════════════════════ */
+function clamp(v, lo=0, hi=MAX) { return Math.max(lo, Math.min(hi, v)); }
+
+function doAction(action) {
+  if (state.week > WEEK_LIMIT) return;
+
+  let msg = "";
+  let msgType = "info";
+
+  const t = state.talent;
+
+  switch (action) {
+    case "practice": {
+      const gain = Math.round(4 + t * 0.06 + rand(0, 4));
+      state.talent  = clamp(state.talent  + gain);
+      state.stamina = clamp(state.stamina - 10);
+      msg = `🎸 Hard practice pays off! +${gain} Talent`;
+      msgType = "good";
+      break;
+    }
+    case "perform": {
+      if (state.stamina < 20) {
+        setEvent("😓 Too exhausted to perform well. Rest first!", "bad");
+        return;
+      }
+      const fameGain  = Math.round(3 + t * 0.1 + rand(0, 6));
+      const moneyGain = Math.round(500 + t * 20 + rand(0, 500));
+      state.fame    = clamp(state.fame    + fameGain);
+      state.money   = clamp(state.money   + moneyGain, 0, MAX_MONEY);
+      state.stamina = clamp(state.stamina - 20);
+      msg = `🎭 Great show! +${fameGain} Fame, +$${moneyGain.toLocaleString()}`;
+      msgType = "good";
+      break;
+    }
+    case "network": {
+      if (state.money < 500) {
+        setEvent("💸 Not enough money to network. Earn more first!", "bad");
+        return;
+      }
+      const fameGain = Math.round(4 + rand(0, 8));
+      state.fame    = clamp(state.fame + fameGain);
+      state.money   = clamp(state.money - 500, 0, MAX_MONEY);
+      state.stamina = clamp(state.stamina - 10);
+      msg = `🤝 Made great connections! +${fameGain} Fame (−$500)`;
+      msgType = "good";
+      break;
+    }
+    case "rest": {
+      const gain = 40;
+      state.stamina = clamp(state.stamina + gain);
+      msg = "😴 Your star is well-rested and ready to shine! +40 Stamina";
+      msgType = "info";
+      break;
+    }
+    case "collab": {
+      if (state.talent < 30) {
+        setEvent("🎵 You need at least 30 Talent for a collaboration.", "bad");
+        return;
+      }
+      if (state.money < 1000) {
+        setEvent("💸 Collaborations require $1000 upfront. Keep earning!", "bad");
+        return;
+      }
+      const roll = rand(0, 100);
+      state.money   = clamp(state.money - 1000, 0, MAX_MONEY);
+      state.stamina = clamp(state.stamina - 15);
+      if (roll < 60) {
+        const fameGain = Math.round(12 + t * 0.15 + rand(0, 8));
+        state.fame = clamp(state.fame + fameGain);
+        msg = `🎙️ The collab went viral! +${fameGain} Fame (−$1000)`;
+        msgType = "good";
+      } else {
+        msg = "🎙️ The collab was decent but didn't quite pop. −$1000";
+        msgType = "info";
+      }
+      break;
+    }
+    case "tour": {
+      if (state.fame < 25) {
+        setEvent("🚌 Not famous enough to fill venues on tour. Build more fame first!", "bad");
+        return;
+      }
+      if (state.stamina < 40) {
+        setEvent("😓 Too exhausted for a tour. Rest up first!", "bad");
+        return;
+      }
+      const fameGain  = Math.round(15 + t * 0.2 + rand(0, 10));
+      const moneyGain = Math.round(3000 + t * 50 + rand(0, 2000));
+      state.fame    = clamp(state.fame    + fameGain);
+      state.money   = clamp(state.money   + moneyGain, 0, MAX_MONEY);
+      state.stamina = clamp(state.stamina - 40);
+      msg = `🚌 Epic tour! +${fameGain} Fame, +$${moneyGain.toLocaleString()} (−40 Stamina)`;
+      msgType = "good";
+      break;
+    }
+  }
+
+  // Random event (40% chance)
+  let eventText = null;
+  if (rand(0, 100) < 40) {
+    const ev = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
+    if (ev.fame)    state.fame    = clamp(state.fame    + ev.fame);
+    if (ev.talent)  state.talent  = clamp(state.talent  + ev.talent);
+    if (ev.stamina) state.stamina = clamp(state.stamina + ev.stamina);
+    if (ev.money)   state.money   = clamp(state.money   + ev.money, 0, MAX_MONEY);
+    eventText = ev.text;
+    msg += "\n\n📰 " + eventText;
+    msgType = ev.type === "bad" ? "bad" : msgType === "bad" ? "bad" : ev.type;
+  }
+
+  state.week++;
+  setEvent(msg, msgType);
+  addLog(`Week ${state.week - 1}: ${action.charAt(0).toUpperCase() + action.slice(1)}${eventText ? " + event" : ""}`);
+
+  checkMilestones();
+  render();
+  checkEndConditions();
+}
+
+function checkMilestones() {
+  for (let i = MILESTONES.length - 1; i >= 0; i--) {
+    if (state.fame >= MILESTONES[i].fame && i > state.titleIndex) {
+      state.titleIndex = i;
+      flashMilestone(`🌟 New Title: ${MILESTONES[i].title}!`);
+      break;
+    }
+  }
+}
+
+function checkEndConditions() {
+  if (state.fame >= 100) {
+    showModal("👑", "SUPERSTAR!", `
+      <strong>${state.name}</strong> has reached the pinnacle of stardom!<br><br>
+      After <strong>${state.week - 1} weeks</strong>, your star has conquered the world with
+      <strong>${state.talent} Talent</strong> and <strong>$${state.money.toLocaleString()}</strong> in the bank.<br><br>
+      You are a legend. 🌟
+    `, [
+      { label: "Play Again", fn: confirmReset },
+      { label: "Keep Going", fn: closeModal },
+    ]);
+    return;
+  }
+  if (state.week > WEEK_LIMIT) {
+    const won = state.fame >= 65;
+    if (won) {
+      showModal("🎊", "A Year Well Spent!", `
+        <strong>${state.name}</strong> ended the year as a <strong>${MILESTONES[state.titleIndex].title}</strong>!<br><br>
+        Fame: <strong>${state.fame}</strong> | Talent: <strong>${state.talent}</strong> | Savings: <strong>$${state.money.toLocaleString()}</strong><br><br>
+        Not quite superstar yet — but the world is watching!
+      `, [
+        { label: "New Game", fn: confirmReset },
+        { label: "Continue", fn: closeModal },
+      ]);
+    } else {
+      showModal("😔", "Year's End", `
+        <strong>${state.name}</strong> reached <strong>${state.fame} Fame</strong> this year — not bad, but not superstar level either.<br><br>
+        The industry is tough. Maybe next time?<br><br>
+        Tip: Focus on performing and touring early to build fame fast!
+      `, [
+        { label: "Try Again", fn: confirmReset },
+        { label: "Keep Going", fn: closeModal },
+      ]);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════ */
+function render() {
+  const s = state;
+
+  document.getElementById("star-name").textContent  = s.name;
+  document.getElementById("star-title").textContent = MILESTONES[s.titleIndex].title;
+  document.getElementById("star-avatar").textContent = MILESTONES[s.titleIndex].avatar;
+  document.getElementById("week-badge").textContent = `Week ${s.week}`;
+
+  setBar("fame",    s.fame);
+  setBar("talent",  s.talent);
+  setBar("stamina", s.stamina);
+  setBarMoney(s.money);
+
+  document.getElementById("val-fame").textContent    = s.fame;
+  document.getElementById("val-talent").textContent  = s.talent;
+  document.getElementById("val-stamina").textContent = s.stamina;
+  document.getElementById("val-money").textContent   = `$${s.money.toLocaleString()}`;
+
+  // Next milestone
+  const next = MILESTONES.find(m => m.fame > s.fame);
+  if (next) {
+    document.getElementById("next-milestone-label").textContent = next.title;
+    document.getElementById("next-milestone-val").textContent   = next.fame;
+    document.getElementById("fame-milestone").style.display     = "";
+  } else {
+    document.getElementById("fame-milestone").style.display     = "none";
+  }
+
+  // Disable tour / collab if prereqs not met
+  const btns = document.querySelectorAll(".action-btn");
+  btns.forEach(b => b.disabled = false);
+}
+
+function setBar(id, val) {
+  document.getElementById("bar-" + id).style.width = clamp(val, 0, 100) + "%";
+}
+function setBarMoney(val) {
+  document.getElementById("bar-money").style.width = (val / MAX_MONEY * 100).toFixed(1) + "%";
+}
+
+function setEvent(text, type = "info") {
+  const el = document.getElementById("event-display");
+  el.textContent = text;
+  el.className   = type;
+}
+
+function addLog(entry) {
+  state.log.unshift(entry);
+  if (state.log.length > 30) state.log.pop();
+  const list = document.getElementById("log-list");
+  list.innerHTML = state.log.map(l => `<li>${l}</li>`).join("");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════════ */
+function showModal(emoji, title, body, buttons) {
+  document.getElementById("modal-emoji").textContent  = emoji;
+  document.getElementById("modal-title").textContent  = title;
+  document.getElementById("modal-body").innerHTML     = body;
+  const btnsEl = document.getElementById("modal-btns");
+  btnsEl.innerHTML = "";
+  buttons.forEach(b => {
+    const el = document.createElement("button");
+    el.className   = "btn-primary";
+    el.textContent = b.label;
+    el.style.margin = "0 6px";
+    el.onclick = () => { closeModal(); b.fn(); };
+    btnsEl.appendChild(el);
+  });
+  document.getElementById("modal-overlay").classList.add("visible");
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("visible");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MILESTONE FLASH
+═══════════════════════════════════════════════════════════════ */
+function flashMilestone(text) {
+  const el = document.getElementById("milestone-flash");
+  el.textContent = text;
+  el.className = "";
+  void el.offsetWidth; // reflow to restart animation
+  el.classList.add("show");
+
+  // animate avatar
+  const av = document.getElementById("star-avatar");
+  av.classList.remove("pop");
+  void av.offsetWidth;
+  av.classList.add("pop");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELP
+═══════════════════════════════════════════════════════════════ */
+function showHelp() {
+  showModal("🎓", "How to Play", `
+    <strong>Goal:</strong> Reach 100 Fame within 52 weeks to become a Superstar!<br><br>
+    <strong>Actions:</strong><br>
+    🎸 <strong>Practice</strong> — builds Talent (needed for bigger fame gains)<br>
+    🎭 <strong>Perform</strong> — earns Fame &amp; Money (needs 20 Stamina)<br>
+    🤝 <strong>Network</strong> — boosts Fame (costs $500)<br>
+    😴 <strong>Rest</strong> — recovers Stamina<br>
+    🎙️ <strong>Collaborate</strong> — high-risk fame boost (needs Talent ≥30 &amp; $1000)<br>
+    🚌 <strong>Tour</strong> — massive Fame &amp; Money (needs Fame ≥25 &amp; Stamina ≥40)<br><br>
+    <strong>Random events</strong> happen ~40% of turns — good and bad.<br><br>
+    <strong>Tip:</strong> Keep Stamina above 40 to stay effective!
+  `, [{ label: "Got it!", fn: closeModal }]);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW GAME
+═══════════════════════════════════════════════════════════════ */
+function confirmReset() {
+  closeModal();
+  document.getElementById("name-input").value = "";
+  document.getElementById("name-screen").style.display = "flex";
+}
+
+function startGame() {
+  const raw  = document.getElementById("name-input").value.trim();
+  const name = raw || "Rising Star";
+  state      = newState(name);
+  document.getElementById("name-screen").style.display = "none";
+  setEvent("Your journey begins… Make your first move!", "info");
+  document.getElementById("log-list").innerHTML = "";
+  render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════════ */
+function rand(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }
+
+// Close modal on overlay click
+document.getElementById("modal-overlay").addEventListener("click", e => {
+  if (e.target === document.getElementById("modal-overlay")) closeModal();
+});
+
+// Allow Enter to start game
+document.getElementById("name-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") startGame();
+});
+</script>
+</body>
+</html>
