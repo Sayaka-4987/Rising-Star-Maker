@@ -176,9 +176,12 @@ function renderResult(state: GameState): string {
   if (state.pendingResults.length === 0) return ''
   const situation = situationById(state.currentSituationId)
   const nextLabel = state.week === 24 ? t('button.finish') : t('button.nextWeek')
+  const hasReport = state.week % 4 === 0 && state.week < 24
+  const hasEnding = state.week === 24 && Boolean(state.endingId)
+  const resultLayoutClass = !hasReport && !hasEnding ? ' no-summary' : ''
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), localeSwitcher())}
-    <main class="weekly-results panel fade-in">
+    <main class="weekly-results panel fade-in${resultLayoutClass}">
       ${state.pendingAchievementIds.length > 0
         ? `<section class="achievement-toast" aria-live="polite"><strong>${e(t('label.newAchievement'))}</strong><ul>${state.pendingAchievementIds.map(id => `<li>${e(t(`achievement.${id}.name`))}</li>`).join('')}</ul></section>`
         : ''}
@@ -210,8 +213,8 @@ function renderResult(state: GameState): string {
           </article>`
         }).join('')}
       </div>
-      ${state.week % 4 === 0 && state.week < 24 ? renderReportSection(state) : ''}
-      ${state.week === 24 && state.endingId ? renderEndingSection(state) : ''}
+      ${hasReport ? renderReportSection(state) : ''}
+      ${hasEnding ? renderEndingSection(state) : ''}
       <div class="results-actions">${state.week === 24
         ? `${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}`
         : button('next-feedback', nextLabel, 'primary')}</div>

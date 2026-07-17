@@ -388,10 +388,31 @@ button.schedule-slot { cursor: pointer; }
   width: 100%;
   margin: 0;
   padding: clamp(14px, 2.4vw, 24px);
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+}
+.weekly-results.no-summary .feedback-situation {
+  margin-bottom: 16px;
+}
+.weekly-results.no-summary .result-list {
+  flex: 1;
+  align-content: start;
+}
+.weekly-results.no-summary .result-card {
+  min-height: 220px;
+  padding: 16px;
+}
+.weekly-results.no-summary .event-copy {
+  margin-top: 12px;
+  line-height: 1.7;
+}
+.weekly-results.no-summary .results-actions {
+  margin-top: auto;
+  padding-top: 16px;
 }
 .achievement-toast {
   margin: 0 0 18px;
@@ -442,7 +463,14 @@ button.schedule-slot { cursor: pointer; }
 .trait-unlock.compact > span { color: var(--muted); }
 .trait-unlock.compact > strong { display: block; margin-top: 4px; color: var(--amber); font-size: 15px; }
 .trait-unlock.compact p { margin: 4px 0 0; line-height: 1.5; }
-.results-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+}
 .results-actions .button { min-width: 180px; }
 
 .paper {
@@ -489,11 +517,12 @@ button.schedule-slot { cursor: pointer; }
 .report-fold > summary {
   list-style: none;
   cursor: pointer;
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  background: rgba(155, 212, 169, .03);
 }
 .report-fold > summary::-webkit-details-marker { display: none; }
 .report-fold-summary strong {
@@ -504,9 +533,9 @@ button.schedule-slot { cursor: pointer; }
 }
 .report-fold-toggle {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   border: 1px solid var(--line);
-  padding: 2px 8px;
+  padding: 3px 10px;
 }
 .report-fold-open { display: none; }
 .report-fold[open] .report-fold-open { display: inline; }
