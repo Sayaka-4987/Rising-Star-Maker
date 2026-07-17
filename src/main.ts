@@ -71,6 +71,7 @@ function render(): void {
 
 function renderTitle(): string {
   return shell(`
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', localeSwitcher())}
     <main class="title-screen panel" aria-labelledby="game-title">
       <div class="logo" aria-hidden="true">
         <strong>RISING STAR MAKER</strong>
@@ -101,6 +102,7 @@ function renderGame(state: GameState): string {
 
 function renderReveal(state: GameState): string {
   return shell(`
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', localeSwitcher())}
     <main class="center-screen panel fade-in">
       <p class="eyebrow">NEW INTERN RECEIVED</p>
       ${portrait(state.profile.portraitId, state.profile.name)}
@@ -117,11 +119,7 @@ function renderPlanning(state: GameState): string {
   const latest = state.eventHistory[state.eventHistory.length - 1]?.text ?? formatForIntern(state.profile.observationKey, state)
   const situation = situationById(state.currentSituationId)
   return shell(`
-    <header class="topbar panel">
-      <div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>
-      <strong>${e(t('label.week', { week: state.week }))}</strong>
-      ${button('home', t('button.home'), 'quiet small')}
-    </header>
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}${localeSwitcher()}`)}
     <main class="game-grid">
       <aside class="intern-panel panel">
         <div class="portrait-desktop">${portrait(state.profile.portraitId, state.profile.name)}</div>
@@ -175,6 +173,7 @@ function renderResult(state: GameState): string {
   const situation = situationById(state.currentSituationId)
   const nextLabel = state.week === 24 ? t('button.finish') : t('button.nextWeek')
   return shell(`
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), localeSwitcher())}
     <main class="weekly-results panel fade-in">
       <div class="results-heading">
         <div><p class="eyebrow">WEEKLY RESULTS</p><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
@@ -262,8 +261,9 @@ function renderDex(): string {
   const neutralPronoun = localizedNeutralPronoun()
   const genericInternName = localizedGenericInternName()
   return shell(`
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.dex')), `${button('home', t('button.back'), 'quiet small')}${localeSwitcher()}`)}
     <main class="dex-screen panel fade-in">
-      <div class="section-heading"><div><p class="eyebrow">HUMANDEX</p><h1>${e(t('button.dex'))}</h1></div>${button('home', t('button.back'), 'quiet')}</div>
+      <div class="section-heading"><div><p class="eyebrow">HUMANDEX</p><h1>${e(t('button.dex'))}</h1></div></div>
       <p>${e(t('label.games', { count: dex.gamesCompleted }))}</p>
       <section><h2>${e(t('label.dexTraits'))}</h2><div class="dex-grid">
         ${traits.map(trait => dex.discoveredTraitIds.includes(trait.id)
@@ -313,9 +313,17 @@ function button(action: string, label: string, classes = '', disabled = false): 
   return `<button class="button ${classes}" data-action="${e(action)}" ${disabled ? 'disabled' : ''}>${e(label)}</button>`
 }
 
-function shell(content: string): string {
+function localeSwitcher(): string {
   const locale = getLocale()
-  return `<div class="app-shell"><div class="locale-switch" role="group" aria-label="${e(t('label.language'))}"><span>${e(t('label.language'))}</span><button class="button small locale-button ${locale === 'en-US' ? 'active' : ''}" data-action="set-locale" data-id="en-US">EN</button><button class="button small locale-button ${locale === 'zh-CN' ? 'active' : ''}" data-action="set-locale" data-id="zh-CN">中文</button></div>${content}<footer>RSM // LOCAL STATIC BUILD // TEXT FIRST</footer></div>`
+  return `<div class="locale-switch" role="group" aria-label="${e(t('label.language'))}"><span>${e(t('label.language'))}</span><button class="button small locale-button ${locale === 'en-US' ? 'active' : ''}" data-action="set-locale" data-id="en-US">EN</button><button class="button small locale-button ${locale === 'zh-CN' ? 'active' : ''}" data-action="set-locale" data-id="zh-CN">中文</button></div>`
+}
+
+function topbar(left: string, center = '', right = ''): string {
+  return `<header class="topbar panel"><div class="topbar-left">${left}</div><div class="topbar-center">${center}</div><div class="topbar-actions">${right}</div></header>`
+}
+
+function shell(content: string): string {
+  return `<div class="app-shell">${content}<footer>RSM // LOCAL STATIC BUILD // TEXT FIRST</footer></div>`
 }
 
 function persist(): void {
