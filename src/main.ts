@@ -237,6 +237,7 @@ function renderResult(state: GameState): string {
             </header>
             <p class="event-copy">${e(localizedEventText(result, state))}</p>
             ${renderDeltaHintStrip(result)}
+            ${renderHobbyHintStrip(result)}
             ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.effect.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.effect.${result.situationHint}`))}"><span>${e(situationImpactSymbol(result.situationHint))}</span><span>${e(t(`situation.effect.${result.situationHint}`))}</span></p>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
@@ -508,6 +509,31 @@ function renderSingleDeltaHint(rawKey: string, value: number): string {
   const tone = value > 0 ? 'pos' : 'neg'
   return `<span class="delta-hint delta-${tone}">${e(t(labelKey))}${e(symbol)}</span>`
 }
+
+function renderHobbyHintStrip(result: EventResult): string {
+  const hobbyTags = result.tags.filter(tag => HOBBY_TAG_IDS.includes(tag))
+  if (hobbyTags.length === 0) {
+    return `<div class="hobby-hint-strip" aria-label="${e(t('label.hobbyHint'))}"><span class="hobby-hint hobby-hint-unknown">? ${e(t('label.hobbyUnknown'))}</span></div>`
+  }
+
+  const hints = hobbyTags
+    .map(tag => `<span class="hobby-hint hobby-hint-gain">${e(t('label.hobbyGain'))} · ${e(t(`evidence.${tag}`))}</span>`)
+    .join('')
+  return `<div class="hobby-hint-strip" aria-label="${e(t('label.hobbyHint'))}">${hints}</div>`
+}
+
+const HOBBY_TAG_IDS = [
+  'aviation',
+  'gaming',
+  'robotics',
+  'music',
+  'anime',
+  'fitness',
+  'photography',
+  'finance',
+  'volunteering',
+  'foodCulture',
+]
 
 function recordEnding(state: GameState): void {
   dex = {

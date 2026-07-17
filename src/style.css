@@ -559,6 +559,30 @@ button.schedule-slot { cursor: pointer; }
 }
 .delta-pos { color: var(--green); border-color: rgba(155, 212, 169, .45); }
 .delta-neg { color: var(--red); border-color: rgba(217, 148, 132, .55); }
+.hobby-hint-strip {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hobby-hint {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid rgba(155, 212, 169, .38);
+  background: rgba(155, 212, 169, .08);
+  font-size: var(--fs-p6);
+  letter-spacing: .08em;
+  line-height: 1.3;
+}
+.hobby-hint-gain {
+  color: #bfe7cb;
+  border-color: rgba(155, 212, 169, .52);
+}
+.hobby-hint-unknown {
+  color: #b6bfba;
+  border-color: rgba(141, 163, 151, .55);
+  background: rgba(141, 163, 151, .08);
+}
 .situation-impact {
   width: fit-content;
   margin: 8px 0 0;
