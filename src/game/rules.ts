@@ -145,12 +145,14 @@ export function resolveSelectedWeek(game: GameState): GameState {
     ;[outcome, working.rngState] = determineOutcome(working, activity, situationHint)
     const event = events.find(candidate => candidate.activityId === activityId && candidate.outcome === outcome)
     if (!event) throw new Error(`Missing ${outcome} event for ${activityId}`)
+    let eventTags = event.tags ?? []
+    ;[eventTags, working.rngState] = resolveEventTagsForOutcome(working.rngState, outcome, eventTags)
     let textKey
     ;[textKey, working.rngState] = pickOne(working.rngState, event.textKeys)
     applyDeltas(working.stats, event.statDeltas)
     applyDeltas(working.counters, event.counterDeltas)
 
-    const evidenceDeltas = evidenceForResult(working, activity, outcome, event.tags ?? [], situation, situationHint, weeklyEvidence)
+    const evidenceDeltas = evidenceForResult(working, activity, outcome, eventTags, situation, situationHint, weeklyEvidence)
     applyEvidence(working.evidence.totals, weeklyEvidence, evidenceDeltas)
     applyRisks(working.evidence.risks, weeklyRisks, riskDeltas(activityId, outcome, event.counterDeltas?.scopeCreep ?? 0))
 
@@ -161,7 +163,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
       textKey,
       text,
       outcome,
-      tags: event.tags ?? [],
+      tags: eventTags,
       highlight: event.highlight ?? false,
       week: game.week,
       situationHint,
@@ -486,6 +488,18 @@ function determineOutcome(game: GameState, activity: Activity, situationHint?: S
   return ['criticalSuccess', nextState]
 }
 
+function resolveEventTagsForOutcome(rngState: number, outcome: OutcomeId, eventTags: string[]): [string[], number] {
+  if (!(outcome === 'success' || outcome === 'criticalSuccess') || eventTags.length <= 1) return [eventTags, rngState]
+
+  const hobbyTags = [...new Set(eventTags.filter((tag): tag is EvidenceId => evidenceIds.includes(tag as EvidenceId)))]
+  if (hobbyTags.length <= 1) return [eventTags, rngState]
+
+  let selectedHobby: EvidenceId
+  ;[selectedHobby, rngState] = pickOne(rngState, hobbyTags)
+  const fixedTags = eventTags.filter(tag => !evidenceIds.includes(tag as EvidenceId))
+  return [[...fixedTags, selectedHobby], rngState]
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value))
 }
@@ -657,7 +671,7 @@ function traitCondition(id: string, game: GameState): boolean {
     case 'robot_builder': return hobbyTriggered('robotics')
     case 'music_producer': return hobbyTriggered('music')
     case 'anime_artist': return hobbyTriggered('anime')
-    case 'fitness_enthusiast': return hobbyTriggered('fitness', 2, 1)
+    case 'fitness_enthusiast': return hobbyTriggered('fitness', 3, 2)
     case 'photo_hunter': return hobbyTriggered('photography')
     case 'finance_watcher': return hobbyTriggered('finance', 2, 1)
     case 'volunteer_organizer': return hobbyTriggered('volunteering', 2, 1)
