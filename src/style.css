@@ -392,7 +392,7 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
 
 .schedule-bar { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; gap: 8px; align-items: stretch; }
 .schedule-slots { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.schedule-slot { min-height: 50px; padding: 9px 11px; border: 1px dashed var(--line); background: transparent; color: var(--muted); display: flex; align-items: center; gap: 8px; font-size: 13px; text-align: left; }
+.schedule-slot { min-height: 50px; padding: 9px 11px; border: 1px dashed #4e6d5a; background: rgba(155, 212, 169, .035); color: var(--muted); display: flex; align-items: center; gap: 8px; font-size: 13px; text-align: left; }
 button.schedule-slot { cursor: pointer; }
 .schedule-slot span { color: #607468; font-size: 11px; }
 .schedule-slot.filled { border-style: solid; border-color: var(--line-bright); color: var(--text); }
