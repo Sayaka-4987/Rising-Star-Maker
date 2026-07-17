@@ -141,6 +141,7 @@ export interface GameState {
   evidence: EvidenceLedger
   traitProgress: Record<string, number>
   endingId?: string
+  endingRevealed?: boolean
   updatedAt: string
 }
 

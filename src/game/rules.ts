@@ -90,6 +90,7 @@ export function createNewGame(seed: number): GameState {
       weeklyRisks: [],
     },
     traitProgress: {},
+    endingRevealed: false,
     updatedAt: new Date().toISOString(),
   }
 }
@@ -186,6 +187,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
     resultIndex: 0,
     selectedActivityIds: [],
     endingId,
+    endingRevealed: false,
   }
 }
 

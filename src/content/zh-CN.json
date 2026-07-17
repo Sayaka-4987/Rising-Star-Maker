@@ -32,6 +32,7 @@
   "label.newAchievement": "新成就解锁",
   "label.ending": "最终观察结果",
   "label.rarity": "记录稀有度：{rarity}",
+  "label.dexTitle": "实习生图鉴",
   "label.dexTraits": "观察过的特征",
   "label.dexEndings": "抵达过的结局",
   "label.games": "已完成 {count} 次实习观察",

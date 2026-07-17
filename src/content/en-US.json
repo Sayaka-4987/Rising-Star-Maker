@@ -32,6 +32,7 @@
   "label.newAchievement": "New Achievement Unlocked",
   "label.ending": "Final Assessment",
   "label.rarity": "Record Rarity: {rarity}",
+  "label.dexTitle": "Intern Archive",
   "label.dexTraits": "Observed Traits",
   "label.dexEndings": "Unlocked Endings",
   "label.games": "Completed runs: {count}",

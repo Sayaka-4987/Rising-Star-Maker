@@ -53,6 +53,9 @@ root.addEventListener('click', event => {
   } else if (action === 'next-feedback' && game) {
     game = advanceFromFeedback(game)
     persist()
+  } else if (action === 'view-ending' && game) {
+    game = { ...game, endingRevealed: true }
+    persist()
   } else if (action === 'clear') {
     if (window.confirm(t('confirm.clear'))) {
       clearAllData()
@@ -177,7 +180,8 @@ function renderResult(state: GameState): string {
   const situation = situationById(state.currentSituationId)
   const nextLabel = state.week === 24 ? t('button.finish') : t('button.nextWeek')
   const hasReport = state.week % 4 === 0 && state.week < 24
-  const hasEnding = state.week === 24 && Boolean(state.endingId)
+  const hasEnding = state.week === 24 && Boolean(state.endingId) && Boolean(state.endingRevealed)
+  const canRevealEnding = state.week === 24 && Boolean(state.endingId) && !state.endingRevealed
   const resultLayoutClass = !hasReport && !hasEnding ? ' no-summary' : ''
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), localeSwitcher())}
@@ -220,7 +224,9 @@ function renderResult(state: GameState): string {
       ${hasReport ? renderReportSection(state) : ''}
       ${hasEnding ? renderEndingSection(state) : ''}
       <div class="results-actions">${state.week === 24
-        ? `${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}`
+        ? canRevealEnding
+          ? `${button('view-ending', t('button.viewEnding'), 'primary')}${button('home', t('button.home'), 'quiet')}`
+          : `${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}`
         : button('next-feedback', nextLabel, 'primary')}</div>
     </main>
   `)
@@ -285,9 +291,9 @@ function renderDex(): string {
   const neutralPronoun = localizedNeutralPronoun()
   const genericInternName = localizedGenericInternName()
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.dex')), `${button('home', t('button.back'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.dexTitle')), `${button('home', t('button.back'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="dex-screen panel fade-in">
-      <div class="section-heading"><h1>${e(t('button.dex'))}</h1></div>
+      <div class="section-heading"><h1>${e(t('label.dexTitle'))}</h1></div>
       <p>${e(t('label.games', { count: dex.gamesCompleted }))}</p>
       <section><h2>${e(t('label.dexTraits'))}</h2><div class="dex-grid">
         ${traits.map(trait => dex.discoveredTraitIds.includes(trait.id)

@@ -625,13 +625,15 @@ button.schedule-slot { cursor: pointer; }
 .nearby-endings p, .next-run p { margin: 0; color: #b7c8bd; line-height: 1.7; }
 
 .dex-screen { padding: clamp(24px, 5vw, 54px); }
-.dex-screen > p { color: var(--muted); }
+.dex-screen > p { color: var(--muted); font-size: 17px; }
 .dex-screen section { margin-top: 36px; }
+.dex-screen .section-heading h1 { font-size: clamp(34px, 5vw, 52px); }
+.dex-screen h2 { font-size: 18px; }
 .dex-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .dex-card { min-height: 140px; padding: 16px; border: 1px solid var(--line); background: #0e1612; }
-.dex-card > span { color: var(--green); font-size: 12px; }
-.dex-card h3 { margin: 18px 0 8px; font-size: 16px; }
-.dex-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.dex-card > span { color: var(--green); font-size: 13px; }
+.dex-card h3 { margin: 18px 0 8px; font-size: 18px; line-height: 1.35; }
+.dex-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
 .dex-card.unknown { opacity: .42; filter: grayscale(1); }
 
 .fade-in { animation: appear 160ms ease-out; }

@@ -16,6 +16,7 @@ export function loadGame(): GameState | null {
       unlockedAchievementIds: game.unlockedAchievementIds ?? [],
       evidence: { ...game.evidence, weeklyRisks: game.evidence.weeklyRisks ?? [] },
       traitProgress: game.traitProgress ?? {},
+      endingRevealed: game.endingRevealed ?? false,
     }
   }
   return null
