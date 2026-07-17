@@ -66,223 +66,223 @@
         "      /_/   \\_\\       "
     ],
     "ending.software": [
-        "  +----------------+  ",
-        "  |  if (kind) {   |  ",
-        "  |    keepGoing() |  ",
-        "  |  }             |  ",
-        "  +--------+-------+  ",
-        "           |          ",
-        "         __|__        "
+        "   .-----------------.   ",
+        "   |  npm test   OK  |   ",
+        "   |  build      OK  |   ",
+        "   |  deploy  pending|   ",
+        "   '--------+--------'   ",
+        "            |            ",
+        "          [merge]        "
     ],
     "ending.no_return_offer": [
-        "    +------------+     ",
-        "    | NO OFFER   |     ",
-        "    +------+-----+     ",
-        "           |           ",
-        "      resume ->         ",
-        "      next interview    "
+        "     .------------.      ",
+        "     | NO OFFER   |      ",
+        "     '-----+------'      ",
+        "           |             ",
+        "   [resume v2] -> [next] ",
+        "          keep going      "
     ],
     "ending.product": [
-        " [USER] <-> [NEEDS]   ",
-        "       \\     /        ",
-        "        \\   /         ",
-        "      [PROTOTYPE]      ",
-        "          |            ",
-        "       [PRODUCT]       "
+        " [user pain]  [goal]    ",
+        "      \\        /        ",
+        "       \\  [PRD]         ",
+        "        \\   |           ",
+        "      [prototype]        ",
+        "          | ship         "
     ],
     "ending.research": [
-        "       ?              ",
-        "      / \\             ",
-        "     ?---?            ",
-        "      \\ /             ",
-        "       ?              ",
-        "      /|\\             ",
-        "   ... | ...          "
+        "        ?               ",
+        "      .-+-.             ",
+        "    ?-(hyp)-?           ",
+        "      '-+-'             ",
+        "        | test          ",
+        "      [data]            ",
+        "    -> insight?         "
     ],
     "ending.technical_sales": [
-        "  [client] <-> [tech]  ",
-        "       \\       /       ",
-        "        \\     /        ",
-        "         [demo]         ",
-        "           |            ",
-        "        proposal        "
+        " [client] <-> [engineer] ",
+        "      \\         /        ",
+        "       \\ [demo]/         ",
+        "        \\   |            ",
+        "      [proposal]          ",
+        "         close?           "
     ],
     "ending.developer_relations": [
-        "     docs + demo        ",
-        "        / | \\          ",
-        "       /  |  \\         ",
-        "   [code]-+-[people]    ",
-        "          |             ",
-        "       community        "
+        "   blog + demo + sample  ",
+        "        \\  |  /         ",
+        "         \\ | /          ",
+        "      [devrel hub]       ",
+        "          |              ",
+        "      community++        "
     ],
     "ending.staff": [
-        "[PEOPLE]-[SYSTEM]-[TEAM]",
-        "   \\      |      /     ",
-        "    \\    [MAP]   /      ",
-        "     \\    |    /       ",
-        "      [name]          "
+        "[people]-[system]-[team]",
+        "    \\      |      /     ",
+        "     \\  [tradeoff]      ",
+        "      \\    |    /       ",
+        "        [name]           "
     ],
     "ending.open_source": [
-        "       *              ",
-        "      /|\\             ",
-        "   *-- | --*          ",
-        "      / \\             ",
-        "     *   *            ",
-        "  pull requests: open "
+        "      *----repo----*    ",
+        "      |    \\      |     ",
+        "   issue -> PR -> merge  ",
+        "      |          \\ |     ",
+        "      *---stars---*      ",
+        "    maintainer life      "
     ],
     "ending.founder": [
-        "    +----------+       ",
-        "    | v0.0.1   |       ",
-        "    +----+-----+       ",
-        "         |             ",
-        "    user: 0001         ",
-        "    status: listening  "
+        "    .----------.        ",
+        "    |  v0.1.0  |        ",
+        "    '----+-----'        ",
+        "         | feedback     ",
+        "     users: 0012        ",
+        "     burn:  careful     "
     ],
     "ending.flight": [
-        "          __|__         ",
-        "   --o--o--(_)--o--o-- ",
-        "             \\        ",
-        "      . . . . \\       ",
-        "  RWY =========\\====  "
+        "           __|__         ",
+        "   ---o---o-(_)-o---o--- ",
+        "             / \\         ",
+        "            /___\\        ",
+        "  RWY ==================  "
     ],
     "ending.kubernetes": [
-        "     .----------.      ",
-        "   .(  desired   ).    ",
-        "  (     state      )   ",
-        "   '(  actual   ).'    ",
-        "     '----+-----'      ",
-        "          |            ",
-        "       kubectl         "
+        "      .-----------.      ",
+        "    .( desired=3  ).     ",
+        "   (   actual=2    )     ",
+        "    '(reconcile) .'      ",
+        "       '----+----'       ",
+        "            |            ",
+        "         kubectl         "
     ],
     "ending.internship_extended": [
-        "    +------------+     ",
-        "    |  +8 WEEKS  |     ",
-        "    +------+-----+     ",
-        "           |           ",
-        "      learn | retry     ",
-        "           v           "
+        "     .------------.      ",
+        "     |  +8 WEEKS  |      ",
+        "     '------+-----'      ",
+        "            |            ",
+        "      learn | retry      ",
+        "            v            "
     ],
     "ending.frontend": [
-        "  +----------------+  ",
-        "  | [nav]  [user]  |  ",
-        "  |                |  ",
-        "  |   [ACTION]     |  ",
-        "  +----------------+  "
+        "  .------------------.  ",
+        "  | [nav]   [theme]  |  ",
+        "  |    hero banner   |  ",
+        "  |   [CTA BUTTON]   |  ",
+        "  '------------------'  "
     ],
     "ending.backend": [
-        " [client] -> [API]    ",
-        "              |       ",
-        "          [service]   ",
-        "              |       ",
-        "            [DB]      "
+        " [client] -> [API]      ",
+        "              |         ",
+        "          [service]     ",
+        "              |         ",
+        "        [cache]->[DB]   "
     ],
     "ending.mobile": [
-        "      .--------.      ",
-        "      | 12:24  |      ",
-        "      | [APP]  |      ",
-        "      |   o    |      ",
-        "      '--------'      "
+        "      .--------.       ",
+        "      | 12:24  |       ",
+        "      | [APP]  |       ",
+        "      | [TAB]  |       ",
+        "      '---__---'       "
     ],
     "ending.test_engineer": [
-        "  arrange -> act      ",
-        "             |        ",
-        "          assert      ",
-        "             |        ",
-        "           PASS       "
+        "  setup -> run         ",
+        "            |          ",
+        "         assert()      ",
+        "            |          ",
+        "      PASS PASS PASS   "
     ],
     "ending.security": [
-        "       .----.         ",
-        "      / LOCK \\        ",
-        "     |  [##]  |       ",
-        "      \\______/        ",
-        "     least privilege  "
+        "       .------.        ",
+        "      / LOCK  \\       ",
+        "     | [####] |        ",
+        "      \\______/         ",
+        "   least privilege      "
     ],
     "ending.performance": [
-        " slow |#####     fast ",
-        "      |########       ",
-        " p50  |---            ",
-        " p99  |--------       ",
-        "      measure()       "
+        " slow |####      fast  ",
+        "      |##########      ",
+        " p50  |---             ",
+        " p99  |------           ",
+        "      profile()         "
     ],
     "ending.site_reliability": [
-        " [SLO] ---> [ALERT]   ",
-        "    ^          |      ",
-        "    |       [FIX]     ",
-        "    +--- learn()      "
+        " [SLO] --> [ALERT]     ",
+        "    ^          |       ",
+        "    |       [mitigate] ",
+        "    +------ learn()    "
     ],
     "ending.data_engineer": [
-        " [raw] -> [clean]     ",
-        "             |        ",
-        "          [table]     ",
-        "             |        ",
-        "        row count: OK "
+        " [raw] -> [clean]      ",
+        "             |         ",
+        "          [warehouse]  ",
+        "             |         ",
+        "      checksum:   OK   "
     ],
     "ending.ml_engineer": [
-        " data -> [MODEL]      ",
-        "            |         ",
-        "         [serve]      ",
-        "            |         ",
-        "        monitor()     "
+        " data -> [model]       ",
+        "            |          ",
+        "        [inference]    ",
+        "            |          ",
+        "        monitor()      "
     ],
     "ending.data_scientist": [
-        " hypothesis ?        ",
-        "      |              ",
-        "   [DATA] -> chart   ",
-        "      |              ",
-        "   evidence          "
+        " hypothesis ?          ",
+        "      |                ",
+        "   [data] -> chart     ",
+        "      |                ",
+        "   confidence 0.92     "
     ],
     "ending.applied_scientist": [
-        " [paper] -> [trial]   ",
-        "              |       ",
-        "           [system]   ",
-        "              |       ",
-        "          real use    "
+        " [paper] -> [trial]    ",
+        "              |        ",
+        "         [prototype]   ",
+        "              |        ",
+        "          in prod      "
     ],
     "ending.program_manager": [
-        " [A]--depends--[B]    ",
-        "   \\          /      ",
-        "    [MILESTONE]       ",
-        "         |            ",
-        "       owner?         "
+        " [A]--depends--[B]     ",
+        "   \\          /       ",
+        "    [milestone]        ",
+        "         |             ",
+        "      owner: clear     "
     ],
     "ending.solutions_architect": [
-        " [need] -> [design]   ",
-        "             / \\      ",
-        "         [A]   [B]    ",
-        "           \\ /       ",
-        "          [fit]       "
+        " [need] -> [design]    ",
+        "             / \\       ",
+        "          [svc][db]    ",
+        "             \\ /       ",
+        "          [fit+cost]   "
     ],
     "ending.support_engineer": [
-        " ticket -> reproduce  ",
-        "              |       ",
-        "           isolate    ",
-        "              |       ",
-        "          resolved    "
+        " ticket -> reproduce   ",
+        "              |        ",
+        "            isolate    ",
+        "              |        ",
+        "           resolved    "
     ],
     "ending.ux_researcher": [
-        " user:  ...           ",
-        "        \\             ",
-        "      [listen]        ",
-        "          |           ",
-        "       pattern?       "
+        " user says: ...        ",
+        "         \\            ",
+        "       [listen]        ",
+        "           |           ",
+        "      pain pattern?    "
     ],
     "ending.technical_writer": [
-        " # Start here         ",
-        " 1. prepare           ",
-        " 2. verify            ",
-        " 3. recover           ",
-        " docs: up to date     "
+        " # Runbook             ",
+        " 1) prepare            ",
+        " 2) verify             ",
+        " 3) recover            ",
+        " docs: trusted         "
     ],
     "ending.programming_instructor": [
-        "  code -> explain     ",
-        "    ^        |        ",
-        "    |      try()      ",
-        "    +----- learn      "
+        " code -> explain       ",
+        "   ^         |         ",
+        "   |       hands-on    ",
+        "   +------ feedback    "
     ],
     "ending.independent_developer": [
-        " idea -> v0.1 -> user ",
-        "  ^               |   ",
-        "  +---- feedback--+   ",
-        "       ship again     "
+        " idea -> v0.1 -> users ",
+        "  ^                |   ",
+        "  +-----feedback---+   ",
+        "       ship again      "
     ]
 }
