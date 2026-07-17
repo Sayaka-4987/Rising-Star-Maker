@@ -111,7 +111,7 @@ function renderGame(state: GameState): string {
 
 function renderReveal(state: GameState): string {
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', localeSwitcher())}
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="center-screen panel fade-in">
       ${portrait(state.profile.portraitId, localizedProfileName(state.profile))}
       <h1>${e(localizedProfileName(state.profile))}</h1>
@@ -183,7 +183,7 @@ function renderResult(state: GameState): string {
   const canRevealEnding = state.week === 24 && Boolean(state.endingId) && !state.endingRevealed
   const resultLayoutClass = !hasReport ? ' no-summary' : ''
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), localeSwitcher())}
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="weekly-results panel fade-in${resultLayoutClass}">
       ${state.pendingAchievementIds.length > 0
         ? `<section class="achievement-toast" aria-live="polite"><strong>${e(t('label.newAchievement'))}</strong><ul>${state.pendingAchievementIds.map(id => `<li>${e(t(`achievement.${id}.name`))}</li>`).join('')}</ul></section>`
@@ -232,7 +232,7 @@ function renderResult(state: GameState): string {
 
 function renderEndingPage(state: GameState): string {
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.viewEnding')), localeSwitcher())}
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.viewEnding')), `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="ending-screen panel fade-in">
       ${renderEndingContent(state)}
       <div class="ending-actions">${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}</div>
@@ -243,7 +243,7 @@ function renderEndingPage(state: GameState): string {
 function renderReportSection(state: GameState): string {
   const month = state.week / 4
   const isChinese = getLocale() === 'zh-CN'
-  const foldTitle = isChinese ? `月度报告 · 第 ${month} 月` : `Intern Report · Month ${month}`
+  const foldTitle = isChinese ? `月度报告 · 第 ${month} 个月` : `Intern Report · Month ${month}`
   return `<details class="report-fold embedded-report">
       <summary class="report-fold-summary">
         <span class="report-fold-copy">
