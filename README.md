@@ -4,14 +4,18 @@
 
 ## About
 
-One six-month internship. Three choices every week. A quiet ASCII workplace where the smallest decisions can change who someone becomes.
+One six-month internship. Three choices each week. In a quiet ASCII workplace, small decisions can reshape someone’s future.
 
-*Rising Star Maker* is a replayable internship growth simulator with mouse-based controls and an ASCII visual style, inspired by life-simulation raising games like *Princess Maker* and *Volcano Princess*.
+*Rising Star Maker* is a replayable internship growth simulator with mouse controls and an ASCII presentation. It is a small tribute to raising/life-sim classics like *Princess Maker* and *Volcano Princess*.
 
-You play as an IT-industry mentor guiding a software engineering intern over six months. Each week, you choose three activities and watch how tiny successes, awkward mistakes, and sudden opportunities gradually shape a real ending. The game never shows raw numbers, only what those choices leave behind.
+You play as an IT mentor guiding a software engineering intern for half a year. Each week, pick three activities and watch successes, mistakes, and unexpected chances accumulate into a believable ending. The game hides raw stats and shows only what your choices leave behind.
 
-六个月的实习，每周三个日程，一个安静的 ASCII 职场，你微小的决定会决定你的实习生最后成为什么样的人。
+六个月实习，每周三个日程。在安静的 ASCII 职场里，微小选择会慢慢改写一个实习生的走向。
 
-《职场新星梦工厂》是一款可重复游玩的实习生成长模拟游戏，使用鼠标操作和 ASCII 视觉风格，灵感来源于养成游戏《美少女梦工厂》《火山的女儿》。
+《职场新星梦工厂》是一款可重复游玩的实习生成长模拟游戏，使用鼠标操作与 ASCII 视觉风格，并向《美少女梦工厂》《火山的女儿》等养成作品致敬。
 
-你将以一个 IT 行业 mentor 的视角，陪伴一名软件工程师实习生走过 6 个月。每周从 12 个活动中选 3 个，看见一次次细小的成功、失误和意外机会如何慢慢把一个人推向不同的结局。游戏不会直接显示数值，只会留下选择之后真正发生过的东西。
+你将以 IT 行业 mentor 的视角，陪一名软件工程师实习生走过 6 个月。每周从 12 个活动中选 3 个，看见细小的成功、失误与意外机会如何把 TA 推向不同结局。游戏不直接展示数值，只呈现选择留下的结果。
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only). Code implementation, text polishing, and English translation in this project were assisted by AI.
+
+本项目采用 GNU Affero General Public License v3.0 (AGPL-3.0-only)。代码实现、文本润色与英文文本翻译由 AI 协助完成。
