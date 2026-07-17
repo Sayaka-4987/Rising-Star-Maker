@@ -295,7 +295,7 @@ function activityCard(id: string, state: GameState): string {
   const hint = hintForActivity(situationById(state.currentSituationId), id)
   return `<button class="activity-card ${selectedCount > 0 ? 'selected' : ''}" data-action="select-activity" data-id="${e(id)}" ${state.selectedActivityIds.length === 3 ? 'disabled' : ''}>
     <span class="activity-icon">${e(activity.icon)}</span>
-    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}</strong><small>${e(t(activity.descriptionKey))}${hint ? ` <mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}</small></span>
+    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}${hint ? `<mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}</strong><small>${e(t(activity.descriptionKey))}</small></span>
   </button>`
 }
 
