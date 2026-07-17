@@ -247,6 +247,13 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
 .topbar-left { justify-self: start; }
 .topbar-center { justify-self: center; color: var(--amber); font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .topbar-actions { justify-self: end; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.topbar-divider {
+  color: var(--line-bright);
+  opacity: .8;
+  font-size: 14px;
+  line-height: 1;
+  margin: 0 2px;
+}
 .topbar-brand { color: var(--green); font-size: 13px; font-weight: 700; letter-spacing: .08em; }
 .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
 
@@ -645,6 +652,7 @@ button.schedule-slot { cursor: pointer; }
     justify-content: flex-start;
   }
   .topbar-actions > .button[data-action="home"] { display: none; }
+  .topbar-actions .topbar-divider { display: none; }
   .topbar-actions .locale-switch { width: 100%; }
   .game-grid { grid-template-columns: 1fr; }
   .intern-panel { position: static; }

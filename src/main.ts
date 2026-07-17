@@ -125,7 +125,7 @@ function renderPlanning(state: GameState): string {
   const latest = state.eventHistory[state.eventHistory.length - 1]?.text ?? formatForIntern(state.profile.observationKey, state)
   const situation = situationById(state.currentSituationId)
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}${localeSwitcher()}`)}
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="game-grid">
       <aside class="intern-panel panel">
         <div class="portrait-desktop">${portrait(state.profile.portraitId, localizedProfileName(state.profile))}</div>
@@ -282,7 +282,7 @@ function renderDex(): string {
   const neutralPronoun = localizedNeutralPronoun()
   const genericInternName = localizedGenericInternName()
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.dex')), `${button('home', t('button.back'), 'quiet small')}${localeSwitcher()}`)}
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.dex')), `${button('home', t('button.back'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="dex-screen panel fade-in">
       <div class="section-heading"><h1>${e(t('button.dex'))}</h1></div>
       <p>${e(t('label.games', { count: dex.gamesCompleted }))}</p>
