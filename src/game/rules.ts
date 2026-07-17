@@ -499,8 +499,11 @@ function resolveEventTagsForOutcome(
   const hobbyTags = [...new Set(eventTags.filter((tag): tag is EvidenceId => evidenceIds.includes(tag as EvidenceId)))]
   if (hobbyTags.length <= 1) return [eventTags, rngState]
   const hobbyPreferenceWeight: Partial<Record<EvidenceId, number>> = {
-    gaming: 1.15,
-    anime: 1.15,
+    anime: 0.9,
+    gaming: 1,
+    aviation: 1,
+    fitness: 1,
+    robotics: 1,
     finance: 0.9,
   }
 
@@ -511,7 +514,7 @@ function resolveEventTagsForOutcome(
     const preference = hobbyPreferenceWeight[tag] ?? 1
     return {
       id: tag,
-      weight: (hasMomentum ? 1 + Math.min(3, Math.floor(current / 3) + 1) : 1) * preference,
+      weight: (hasMomentum ? 1 + Math.min(2, Math.floor(current / 4) + 1) : 1) * preference,
     }
   })
 
