@@ -46,11 +46,13 @@ npm run preview
 
 - Vite + TypeScript + 原生 DOM/CSS
 - 带种子的确定性随机数
+- 每周情况卡与机会、风险、相关提示
+- 12 维隐藏证据账本与可解释阶段评价
 - `localStorage` 当前存档与 HumanDex 图鉴
 - Vitest 规则与完整流程测试
 - GitHub Actions 自动部署到 GitHub Pages
 
-完整设计和 MVP 范围见 [plan.md](plan.md)。
+当前已实现的设计和 MVP 范围见 [plan.mvp.md](plan.mvp.md)。事件牌、证据账本、两页面循环和 30 个结局的下一阶段设计见 [plan.md](plan.md)。
 
 ## 部署
 

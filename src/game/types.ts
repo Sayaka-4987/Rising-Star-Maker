@@ -6,11 +6,21 @@ export const counterIds = ['bugsFixed', 'docsRead', 'questionsAsked', 'demosGive
 export type CounterId = (typeof counterIds)[number]
 export type Counters = Record<CounterId, number>
 
+export const evidenceIds = ['engineering', 'reliability', 'research', 'productSense', 'customerFacing', 'communication', 'community', 'ownership', 'resilience', 'incidentResponse', 'leadership', 'aviation'] as const
+export type EvidenceId = (typeof evidenceIds)[number]
+export type EvidenceTotals = Record<EvidenceId, number>
+
+export const riskIds = ['rework', 'lateHelp', 'unsafeAction', 'unclearCommunication', 'scopeCreep'] as const
+export type RiskId = (typeof riskIds)[number]
+export type RiskTotals = Record<RiskId, number>
+
 export type GenderId = 'male' | 'female' | 'nonbinary'
 export type CategoryId = 'work' | 'learning' | 'social' | 'danger'
 export type OutcomeId = 'criticalFailure' | 'failure' | 'success' | 'criticalSuccess'
-export type GamePhase = 'reveal' | 'planning' | 'results' | 'report' | 'ending'
+export type GamePhase = 'reveal' | 'action' | 'feedback'
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
+export type SituationKind = 'common' | 'opportunity' | 'trouble' | 'rare'
+export type SituationHint = 'opportunity' | 'risk' | 'related'
 
 export interface InternProfile {
   name: string
@@ -27,6 +37,23 @@ export interface Activity {
   descriptionKey: string
   icon: string
   statDeltas: Partial<Stats>
+  primaryEvidence: EvidenceId
+  secondaryEvidence?: EvidenceId
+}
+
+export interface WeeklySituation {
+  id: string
+  titleKey: string
+  descriptionKey: string
+  kind: SituationKind
+  minimumWeek: number
+  maximumPerGame?: number
+  cooldownWeeks: number
+  weight: number
+  opportunityActivityIds: string[]
+  riskActivityIds: string[]
+  relatedActivityIds: string[]
+  evidenceTags: EvidenceId[]
 }
 
 export interface EventTemplate {
@@ -61,6 +88,8 @@ export interface Ending {
   activityWeights?: Record<string, number>
   counterWeights?: Partial<Counters>
   traitBonuses?: Record<string, number>
+  minimumEvidence?: Partial<EvidenceTotals>
+  evidenceWeights?: Partial<EvidenceTotals>
 }
 
 export interface EventResult {
@@ -71,11 +100,21 @@ export interface EventResult {
   outcome: OutcomeId
   tags: string[]
   highlight: boolean
+  week: number
+  situationHint?: SituationHint
+  evidenceDeltas?: Partial<EvidenceTotals>
   unlockedTraitId?: string
 }
 
+export interface EvidenceLedger {
+  totals: EvidenceTotals
+  weeklyDeltas: Array<Partial<EvidenceTotals>>
+  risks: RiskTotals
+  weeklyRisks: Array<Partial<RiskTotals>>
+}
+
 export interface GameState {
-  schemaVersion: 2
+  schemaVersion: 3
   seed: number
   rngState: number
   phase: GamePhase
@@ -89,6 +128,10 @@ export interface GameState {
   pendingResults: EventResult[]
   resultIndex: number
   eventHistory: EventResult[]
+  currentSituationId: string
+  situationHistory: string[]
+  rareSituationCount: number
+  evidence: EvidenceLedger
   endingId?: string
   updatedAt: string
 }

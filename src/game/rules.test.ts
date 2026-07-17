@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_LOCALE, getAvailableLocales, getLocale, registerLocale, setLocale, t } from '../content/text'
 import { validateContent } from '../data/validate'
-import { advanceFromReport, advanceFromResult, chooseEnding, createNewGame, removeSelectedActivity, resolveSelectedWeek, revealComplete, toggleActivity } from './rules'
+import { advanceFromFeedback, chooseEnding, createNewGame, removeSelectedActivity, resolveSelectedWeek, revealComplete, toggleActivity } from './rules'
 import type { GameState } from './types'
 
 const schedules = [
@@ -13,14 +13,12 @@ const schedules = [
 
 function play(seed: number, schedule: string[][] = schedules): GameState {
   let game = revealComplete(createNewGame(seed))
-  while (game.phase !== 'ending') {
-    if (game.phase === 'planning') {
+  while (!game.endingId) {
+    if (game.phase === 'action') {
       for (const activity of schedule[(game.week - 1) % schedule.length] as string[]) game = toggleActivity(game, activity)
       game = resolveSelectedWeek(game)
-    } else if (game.phase === 'results') {
-      game = advanceFromResult(game)
-    } else if (game.phase === 'report') {
-      game = advanceFromReport(game)
+    } else if (game.phase === 'feedback') {
+      game = advanceFromFeedback(game)
     }
   }
   return game
@@ -53,7 +51,24 @@ describe('game rules', () => {
     const game = play(4987)
     expect(game.week).toBe(24)
     expect(game.eventHistory).toHaveLength(72)
+    expect(game.situationHistory).toHaveLength(24)
     expect(game.endingId).toBeTruthy()
+  })
+
+  it('draws deterministic weekly situations with cooldown and a rare cap', () => {
+    const first = play(20260716)
+    const second = play(20260716)
+    expect(second.situationHistory).toEqual(first.situationHistory)
+    expect(first.rareSituationCount).toBeLessThanOrEqual(3)
+    for (let index = 0; index < first.situationHistory.length; index += 1) {
+      expect(first.situationHistory.slice(Math.max(0, index - 8), index)).not.toContain(first.situationHistory[index])
+    }
+  })
+
+  it('records evidence from successful work and caps one dimension at four per week', () => {
+    const game = play(4987, [['write_tests', 'write_tests', 'write_tests']])
+    expect(game.evidence.totals.reliability).toBeGreaterThan(0)
+    expect(game.evidence.weeklyDeltas.every(delta => (delta.reliability ?? 0) <= 4)).toBe(true)
   })
 
   it('allows repeated activities and removes only the selected slot', () => {

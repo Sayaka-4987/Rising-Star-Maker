@@ -1,7 +1,7 @@
 import { t } from '../content/text'
-import { activities, endings, events, observationKeys, profileNameKeys, traits } from '../data/gameData'
-import { nextRandom, pickOne, randomInt } from './rng'
-import { counterIds, statIds, type Activity, type Counters, type Ending, type EventResult, type GameState, type GenderId, type OutcomeId, type Stats } from './types'
+import { activities, endings, events, observationKeys, profileNameKeys, traits, weeklySituations } from '../data/gameData'
+import { nextRandom, pickOne, randomInt, weightedPick } from './rng'
+import { counterIds, evidenceIds, riskIds, statIds, type Activity, type Counters, type Ending, type EvidenceId, type EvidenceTotals, type EventResult, type GameState, type GenderId, type OutcomeId, type RiskId, type RiskTotals, type SituationHint, type Stats, type WeeklySituation } from './types'
 
 const genderOptions: Array<{ id: GenderId; pronoun: string }> = [
   { id: 'male', pronoun: '他' },
@@ -28,7 +28,7 @@ export function createNewGame(seed: number): GameState {
   normalizeInitialStats(stats)
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     seed,
     rngState,
     phase: 'reveal',
@@ -42,12 +42,21 @@ export function createNewGame(seed: number): GameState {
     pendingResults: [],
     resultIndex: 0,
     eventHistory: [],
+    currentSituationId: '',
+    situationHistory: [],
+    rareSituationCount: 0,
+    evidence: {
+      totals: zeroEvidence(),
+      weeklyDeltas: [],
+      risks: zeroRisks(),
+      weeklyRisks: [],
+    },
     updatedAt: new Date().toISOString(),
   }
 }
 
 export function toggleActivity(game: GameState, activityId: string): GameState {
-  if (game.phase !== 'planning') return game
+  if (game.phase !== 'action') return game
   const selected = game.selectedActivityIds.length < 3
     ? [...game.selectedActivityIds, activityId]
     : game.selectedActivityIds
@@ -55,14 +64,30 @@ export function toggleActivity(game: GameState, activityId: string): GameState {
 }
 
 export function removeSelectedActivity(game: GameState, index: number): GameState {
-  if (game.phase !== 'planning' || index < 0 || index >= game.selectedActivityIds.length) return game
+  if (game.phase !== 'action' || index < 0 || index >= game.selectedActivityIds.length) return game
   return { ...game, selectedActivityIds: game.selectedActivityIds.filter((_, selectedIndex) => selectedIndex !== index) }
 }
 
 export function resolveSelectedWeek(game: GameState): GameState {
-  if (game.phase !== 'planning' || game.selectedActivityIds.length !== 3) return game
-  let working: GameState = { ...game, stats: { ...game.stats }, counters: { ...game.counters }, activityCounts: { ...game.activityCounts }, traits: [...game.traits], eventHistory: [...game.eventHistory] }
+  if (game.phase !== 'action' || game.selectedActivityIds.length !== 3) return game
+  let working: GameState = {
+    ...game,
+    stats: { ...game.stats },
+    counters: { ...game.counters },
+    activityCounts: { ...game.activityCounts },
+    traits: [...game.traits],
+    eventHistory: [...game.eventHistory],
+    evidence: {
+      totals: { ...game.evidence.totals },
+      weeklyDeltas: [...game.evidence.weeklyDeltas],
+      risks: { ...game.evidence.risks },
+      weeklyRisks: [...game.evidence.weeklyRisks],
+    },
+  }
   const pendingResults: EventResult[] = []
+  const weeklyEvidence: Partial<EvidenceTotals> = {}
+  const weeklyRisks: Partial<RiskTotals> = {}
+  const situation = situationById(game.currentSituationId)
 
   for (const activityId of game.selectedActivityIds) {
     const activity = activities.find(item => item.id === activityId)
@@ -73,13 +98,18 @@ export function resolveSelectedWeek(game: GameState): GameState {
     applyDeltas(working.stats, { chaos: repetitionChaosDelta(previousCount) })
 
     let outcome: OutcomeId
-    ;[outcome, working.rngState] = determineOutcome(working, activity)
+    const situationHint = hintForActivity(situation, activityId)
+    ;[outcome, working.rngState] = determineOutcome(working, activity, situationHint)
     const event = events.find(candidate => candidate.activityId === activityId && candidate.outcome === outcome)
     if (!event) throw new Error(`Missing ${outcome} event for ${activityId}`)
     let textKey
     ;[textKey, working.rngState] = pickOne(working.rngState, event.textKeys)
     applyDeltas(working.stats, event.statDeltas)
     applyDeltas(working.counters, event.counterDeltas)
+
+    const evidenceDeltas = evidenceForResult(working, activity, outcome, situation, situationHint, weeklyEvidence)
+    applyEvidence(working.evidence.totals, weeklyEvidence, evidenceDeltas)
+    applyRisks(working.evidence.risks, weeklyRisks, riskDeltas(activityId, outcome, event.counterDeltas?.scopeCreep ?? 0))
 
     const unlockedTraitId = findNextTrait(working)
     if (unlockedTraitId) working.traits.push(unlockedTraitId)
@@ -92,41 +122,43 @@ export function resolveSelectedWeek(game: GameState): GameState {
       outcome,
       tags: event.tags ?? [],
       highlight: event.highlight ?? false,
+      week: game.week,
+      situationHint,
+      evidenceDeltas,
       unlockedTraitId,
     }
     pendingResults.push(result)
     working.eventHistory.push(result)
   }
 
-  return { ...working, phase: 'results', pendingResults, resultIndex: 0, selectedActivityIds: [] }
+  working.evidence.weeklyDeltas[game.week - 1] = weeklyEvidence
+  working.evidence.weeklyRisks[game.week - 1] = weeklyRisks
+  const endingId = game.week === 24 ? chooseEnding(working).id : undefined
+  return { ...working, phase: 'feedback', pendingResults, resultIndex: 0, selectedActivityIds: [], endingId }
 }
 
-export function advanceFromResult(game: GameState): GameState {
-  if (game.phase !== 'results') return game
-  if (game.resultIndex < game.pendingResults.length - 1) return { ...game, resultIndex: game.resultIndex + 1 }
-  if (game.week === 24) {
-    const ending = chooseEnding(game)
-    return { ...game, phase: 'ending', endingId: ending.id, pendingResults: [] }
-  }
-  if (game.week % 4 === 0) return { ...game, phase: 'report', pendingResults: [] }
-  return nextWeek(game)
-}
-
-export function advanceFromReport(game: GameState): GameState {
-  return game.phase === 'report' ? nextWeek(game) : game
+export function advanceFromFeedback(game: GameState): GameState {
+  if (game.phase !== 'feedback' || game.week === 24) return game
+  return prepareSituation({ ...game, phase: 'action', week: game.week + 1, pendingResults: [], resultIndex: 0 })
 }
 
 export function revealComplete(game: GameState): GameState {
-  return game.phase === 'reveal' ? { ...game, phase: 'planning' } : game
+  return game.phase === 'reveal' ? prepareSituation({ ...game, phase: 'action' }) : game
+}
+
+export function ensureCurrentSituation(game: GameState): GameState {
+  return game.phase === 'action' && !game.currentSituationId ? prepareSituation(game) : game
 }
 
 export function scoreEnding(game: GameState, ending: Ending, ignoreRequirements = false): number {
   if (!ignoreRequirements && ending.requiredTraits?.some(id => !game.traits.includes(id))) return Number.NEGATIVE_INFINITY
+  if (!ignoreRequirements && Object.entries(ending.minimumEvidence ?? {}).some(([id, minimum]) => game.evidence.totals[id as EvidenceId] < (minimum ?? 0))) return Number.NEGATIVE_INFINITY
   let score = 0
   for (const [id, weight] of Object.entries(ending.statWeights)) score += game.stats[id as keyof Stats] * (weight ?? 0)
   for (const [id, weight] of Object.entries(ending.activityWeights ?? {})) score += (game.activityCounts[id] ?? 0) * weight
   for (const [id, weight] of Object.entries(ending.counterWeights ?? {})) score += game.counters[id as keyof Counters] * (weight ?? 0)
   for (const [id, bonus] of Object.entries(ending.traitBonuses ?? {})) if (game.traits.includes(id)) score += bonus
+  for (const [id, weight] of Object.entries(ending.evidenceWeights ?? {})) score += game.evidence.totals[id as EvidenceId] * (weight ?? 0)
   return score
 }
 
@@ -144,23 +176,35 @@ export function predictedEndings(game: GameState): Ending[] {
   return [...eligible].sort((a, b) => scoreEnding(game, b) - scoreEnding(game, a) || b.priority - a.priority).slice(0, 3)
 }
 
+export function nearbyEndings(game: GameState): Ending[] {
+  return [...endings]
+    .filter(ending => ending.id !== game.endingId && ending.id !== 'no_return_offer' && scoreEnding(game, ending) > Number.NEGATIVE_INFINITY)
+    .sort((a, b) => scoreEnding(game, b) - scoreEnding(game, a) || b.priority - a.priority)
+    .slice(0, 2)
+}
+
 export function reportLines(game: GameState): string[] {
-  const variables = internVariables(game)
-  const options: Array<[number, string, number]> = [
-    [game.counters.questionsAsked, 'report.questions', game.counters.questionsAsked],
-    [game.counters.docsRead, 'report.docs', game.counters.docsRead],
-    [game.counters.bugsFixed, 'report.bugs', game.counters.bugsFixed],
-    [game.counters.demosGiven, 'report.demos', game.counters.demosGiven],
-    [game.counters.sideProjects, 'report.projects', game.counters.sideProjects],
-    [game.counters.incidentsObserved, 'report.incidents', game.counters.incidentsObserved],
-    [game.counters.socialEscapes, 'report.social', game.counters.socialEscapes],
-  ]
-  const lines = options
-    .filter(([value]) => value > 0)
-    .sort((a, b) => b[0] - a[0])
-    .slice(0, 3)
-    .map(([, key, count]) => t(key, { ...variables, count }))
-  return lines.length > 0 ? lines : [t('report.quiet', variables)]
+  const lines = topEvidence(game, 2).map(id => formatForIntern(`report.evidence.${id}`, game))
+  return lines.length > 0 ? lines : [formatForIntern('report.quiet', game)]
+}
+
+export function reportAttentionLines(game: GameState): string[] {
+  const recentRisks = sumRisks(game.evidence.weeklyRisks.slice(Math.max(0, game.week - 4), game.week))
+  const risk = Object.entries(recentRisks).sort((a, b) => b[1] - a[1]).find(([, value]) => (value ?? 0) > 0)?.[0] as RiskId | undefined
+  return risk ? [formatForIntern(`report.risk.${risk}`, game)] : [formatForIntern('report.risk.none', game)]
+}
+
+export function reportTrendLines(game: GameState): string[] {
+  const recent = sumEvidence(game.evidence.weeklyDeltas.slice(Math.max(0, game.week - 4), game.week))
+  const previous = sumEvidence(game.evidence.weeklyDeltas.slice(Math.max(0, game.week - 8), Math.max(0, game.week - 4)))
+  if (Object.values(recent).every(value => (value ?? 0) === 0)) return [formatForIntern('report.trend.none', game)]
+  const id = evidenceIds.reduce((best, candidate) => (recent[candidate] ?? 0) > (recent[best] ?? 0) ? candidate : best, evidenceIds[0])
+  const key = (recent[id] ?? 0) > (previous[id] ?? 0) ? 'report.trend.growing' : 'report.trend.steady'
+  return [t(key, { ...internVariables(game), evidence: t(`evidence.${id}`) })]
+}
+
+export function strongestEvidence(game: GameState, limit = 5): EvidenceId[] {
+  return topEvidence(game, limit)
 }
 
 export function formatForIntern(key: string, game: GameState, extra: Record<string, string | number> = {}): string {
@@ -171,8 +215,137 @@ export function activityById(id: string): Activity | undefined {
   return activities.find(activity => activity.id === id)
 }
 
-function nextWeek(game: GameState): GameState {
-  return { ...game, phase: 'planning', week: game.week + 1, pendingResults: [], resultIndex: 0 }
+export function situationById(id: string): WeeklySituation | undefined {
+  return weeklySituations.find(situation => situation.id === id)
+}
+
+export function hintForActivity(situation: WeeklySituation | undefined, activityId: string): SituationHint | undefined {
+  if (!situation) return undefined
+  if (situation.opportunityActivityIds.includes(activityId)) return 'opportunity'
+  if (situation.riskActivityIds.includes(activityId)) return 'risk'
+  if (situation.relatedActivityIds.includes(activityId)) return 'related'
+  return undefined
+}
+
+function prepareSituation(game: GameState): GameState {
+  const cutoff = Math.max(0, game.situationHistory.length - 8)
+  const coolingDown = new Set(game.situationHistory.slice(cutoff))
+  const available = weeklySituations.filter(situation => {
+    if (situation.minimumWeek > game.week || coolingDown.has(situation.id)) return false
+    if (situation.kind === 'rare' && game.rareSituationCount >= 3) return false
+    if (situation.maximumPerGame !== undefined) {
+      const appearances = game.situationHistory.filter(id => id === situation.id).length
+      if (appearances >= situation.maximumPerGame) return false
+    }
+    return true
+  })
+  const candidates = available.length > 0 ? available : weeklySituations.filter(situation => situation.minimumWeek <= game.week && (situation.kind !== 'rare' || game.rareSituationCount < 3))
+  const kinds = [
+    { kind: 'common' as const, weight: 45 },
+    { kind: 'opportunity' as const, weight: 25 },
+    { kind: 'trouble' as const, weight: 20 },
+    { kind: 'rare' as const, weight: game.week >= 5 && game.rareSituationCount < 3 ? 10 : 0 },
+  ].filter(item => item.weight > 0 && candidates.some(candidate => candidate.kind === item.kind))
+  let selectedKind: (typeof kinds)[number]
+  let rngState: number
+  ;[selectedKind, rngState] = weightedPick(game.rngState, kinds)
+  const kindCandidates = candidates.filter(candidate => candidate.kind === selectedKind.kind)
+  let selected: WeeklySituation
+  ;[selected, rngState] = weightedPick(rngState, kindCandidates)
+  return {
+    ...game,
+    rngState,
+    currentSituationId: selected.id,
+    situationHistory: [...game.situationHistory, selected.id],
+    rareSituationCount: game.rareSituationCount + (selected.kind === 'rare' ? 1 : 0),
+  }
+}
+
+function evidenceForResult(
+  game: GameState,
+  activity: Activity,
+  outcome: OutcomeId,
+  situation: WeeklySituation | undefined,
+  situationHint: SituationHint | undefined,
+  weeklyEvidence: Partial<EvidenceTotals>,
+): Partial<EvidenceTotals> {
+  const deltas: Partial<EvidenceTotals> = {}
+  const add = (id: EvidenceId, amount: number) => {
+    const room = Math.max(0, 4 - (weeklyEvidence[id] ?? 0) - (deltas[id] ?? 0))
+    deltas[id] = (deltas[id] ?? 0) + Math.min(room, amount)
+  }
+  if (outcome === 'success') add(activity.primaryEvidence, 1)
+  if (outcome === 'criticalSuccess') {
+    add(activity.primaryEvidence, 2)
+    if (activity.secondaryEvidence) add(activity.secondaryEvidence, 1)
+  }
+  const positive = outcome === 'success' || outcome === 'criticalSuccess'
+  if (positive && situationHint === 'related') situation?.evidenceTags.forEach(id => add(id, 1))
+  if (outcome === 'criticalSuccess' && situationHint === 'opportunity') situation?.evidenceTags.forEach(id => add(id, 1))
+  const recovered = positive && game.eventHistory.some(event => event.activityId === activity.id && event.week >= game.week - 4 && (event.outcome === 'failure' || event.outcome === 'criticalFailure'))
+  if (recovered) add('resilience', 1)
+  return Object.fromEntries(Object.entries(deltas).filter(([, value]) => (value ?? 0) > 0)) as Partial<EvidenceTotals>
+}
+
+function applyEvidence(totals: EvidenceTotals, weekly: Partial<EvidenceTotals>, deltas: Partial<EvidenceTotals>): void {
+  for (const [rawId, amount] of Object.entries(deltas)) {
+    const id = rawId as EvidenceId
+    const value = amount ?? 0
+    totals[id] = Math.min(100, totals[id] + value)
+    weekly[id] = (weekly[id] ?? 0) + value
+  }
+}
+
+function riskDeltas(activityId: string, outcome: OutcomeId, scopeCreep: number): Partial<RiskTotals> {
+  const deltas: Partial<RiskTotals> = {}
+  if (outcome === 'failure') deltas.rework = 1
+  if (outcome === 'criticalFailure') deltas.rework = 2
+  if (outcome === 'criticalFailure' && activityId === 'mentor_1on1') deltas.lateHelp = 1
+  if (outcome === 'criticalFailure' && ['production_incident', 'touch_kubernetes', 'friday_project'].includes(activityId)) deltas.unsafeAction = 1
+  if (outcome === 'criticalFailure' && ['pair_programming', 'tech_talk', 'team_lunch', 'demo'].includes(activityId)) deltas.unclearCommunication = 1
+  if (scopeCreep > 0) deltas.scopeCreep = scopeCreep
+  return deltas
+}
+
+function applyRisks(target: RiskTotals, weekly: Partial<RiskTotals>, deltas: Partial<RiskTotals>): void {
+  for (const [rawId, amount] of Object.entries(deltas)) {
+    const id = rawId as RiskId
+    target[id] += amount ?? 0
+    weekly[id] = (weekly[id] ?? 0) + (amount ?? 0)
+  }
+}
+
+function zeroEvidence(): EvidenceTotals {
+  return Object.fromEntries(evidenceIds.map(id => [id, 0])) as EvidenceTotals
+}
+
+function zeroRisks(): RiskTotals {
+  return Object.fromEntries(riskIds.map(id => [id, 0])) as RiskTotals
+}
+
+function sumEvidence(deltas: Array<Partial<EvidenceTotals>>): Partial<EvidenceTotals> {
+  const total: Partial<EvidenceTotals> = {}
+  for (const delta of deltas) for (const [rawId, value] of Object.entries(delta ?? {})) {
+    const id = rawId as EvidenceId
+    total[id] = (total[id] ?? 0) + (value ?? 0)
+  }
+  return total
+}
+
+function sumRisks(deltas: Array<Partial<RiskTotals>>): Partial<RiskTotals> {
+  const total: Partial<RiskTotals> = {}
+  for (const delta of deltas) for (const [rawId, value] of Object.entries(delta ?? {})) {
+    const id = rawId as RiskId
+    total[id] = (total[id] ?? 0) + (value ?? 0)
+  }
+  return total
+}
+
+function topEvidence(game: GameState, limit: number): EvidenceId[] {
+  return [...evidenceIds]
+    .filter(id => game.evidence.totals[id] > 0)
+    .sort((a, b) => game.evidence.totals[b] - game.evidence.totals[a] || a.localeCompare(b))
+    .slice(0, limit)
 }
 
 function internVariables(game: GameState): Record<string, string> {
@@ -202,13 +375,20 @@ function applyDeltas<T extends Record<string, number>>(target: T, deltas?: Parti
   }
 }
 
-function determineOutcome(game: GameState, activity: Activity): [OutcomeId, number] {
+function determineOutcome(game: GameState, activity: Activity, situationHint?: SituationHint): [OutcomeId, number] {
   const relevantStats = Object.keys(activity.statDeltas).filter(id => id !== 'chaos' && (activity.statDeltas[id as keyof Stats] ?? 0) > 0) as Array<keyof Stats>
   const aptitude = relevantStats.reduce((sum, id) => sum + game.stats[id], 0) / Math.max(1, relevantStats.length)
   const [random, nextState] = nextRandom(game.rngState)
-  const criticalFailureChance = clamp(0.08 - (aptitude - 50) * 0.001, 0.03, 0.12)
-  const failureChance = clamp(0.27 - (aptitude - 50) * 0.002, 0.15, 0.35)
-  const criticalSuccessChance = clamp(0.12 + (aptitude - 50) * 0.003, 0.08, 0.3)
+  let criticalFailureChance = clamp(0.08 - (aptitude - 50) * 0.001, 0.03, 0.12)
+  let failureChance = clamp(0.27 - (aptitude - 50) * 0.002, 0.15, 0.35)
+  let criticalSuccessChance = clamp(0.12 + (aptitude - 50) * 0.003, 0.08, 0.3)
+  if (situationHint === 'opportunity') {
+    failureChance = Math.max(0.1, failureChance - 0.05)
+    criticalSuccessChance = Math.min(0.35, criticalSuccessChance + 0.05)
+  } else if (situationHint === 'risk') {
+    criticalFailureChance = Math.max(0.02, criticalFailureChance + 0.03)
+    failureChance = Math.min(0.45, failureChance + 0.08)
+  }
   if (random < criticalFailureChance) return ['criticalFailure', nextState]
   if (random < criticalFailureChance + failureChance) return ['failure', nextState]
   if (random < 1 - criticalSuccessChance) return ['success', nextState]

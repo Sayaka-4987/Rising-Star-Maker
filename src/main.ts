@@ -1,7 +1,7 @@
 import asciiData from './content/ascii.json'
 import { t } from './content/text'
 import { activities, endings, traits } from './data/gameData'
-import { activityById, advanceFromReport, advanceFromResult, createNewGame, formatForIntern, predictedEndings, removeSelectedActivity, reportLines, resolveSelectedWeek, revealComplete, toggleActivity } from './game/rules'
+import { activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
 import type { GameState, HumanDex } from './game/types'
 
@@ -11,6 +11,7 @@ if (!rootElement) throw new Error('App root is missing')
 const root = rootElement
 
 let game = loadGame()
+if (game) game = ensureCurrentSituation(game)
 let dex = loadDex()
 let view: 'title' | 'dex' | 'game' = 'title'
 
@@ -40,15 +41,12 @@ root.addEventListener('click', event => {
     game = removeSelectedActivity(game, Number(button.dataset.index))
     persist()
   } else if (action === 'start-week' && game) {
+    const hadEnding = Boolean(game.endingId)
     game = resolveSelectedWeek(game)
+    if (!hadEnding && game.endingId) recordEnding(game)
     persist()
-  } else if (action === 'next-result' && game) {
-    const previousPhase = game.phase
-    while (game.phase === 'results') game = advanceFromResult(game)
-    if (previousPhase === 'results' && game.phase === 'ending' && game.endingId) recordEnding(game)
-    persist()
-  } else if (action === 'next-report' && game) {
-    game = advanceFromReport(game)
+  } else if (action === 'next-feedback' && game) {
+    game = advanceFromFeedback(game)
     persist()
   } else if (action === 'clear') {
     if (window.confirm(t('confirm.clear'))) {
@@ -68,10 +66,10 @@ function render(): void {
 function renderTitle(): string {
   return shell(`
     <main class="title-screen panel" aria-labelledby="game-title">
-      <pre class="logo" aria-hidden="true">+----------------------------------+
-|      RISING  STAR  MAKER         |
-|      INTERN OBSERVATION v0.1     |
-+----------------------------------+</pre>
+      <div class="logo" aria-hidden="true">
+        <strong>RISING STAR MAKER</strong>
+        <span>INTERN OBSERVATION v0.1</span>
+      </div>
       <p class="eyebrow">${e(t('app.subtitle'))}</p>
       <h1 id="game-title">${e(t('app.title'))}</h1>
       <p class="tagline">${e(t('app.tagline'))}</p>
@@ -90,10 +88,8 @@ function renderTitle(): string {
 function renderGame(state: GameState): string {
   switch (state.phase) {
     case 'reveal': return renderReveal(state)
-    case 'planning': return renderPlanning(state)
-    case 'results': return renderResult(state)
-    case 'report': return renderReport(state)
-    case 'ending': return renderEnding(state)
+    case 'action': return renderPlanning(state)
+    case 'feedback': return renderResult(state)
   }
 }
 
@@ -113,6 +109,7 @@ function renderReveal(state: GameState): string {
 function renderPlanning(state: GameState): string {
   const categories = ['work', 'learning', 'social', 'danger'] as const
   const latest = state.eventHistory[state.eventHistory.length - 1]?.text ?? formatForIntern(state.profile.observationKey, state)
+  const situation = situationById(state.currentSituationId)
   return shell(`
     <header class="topbar panel">
       <div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>
@@ -129,6 +126,11 @@ function renderPlanning(state: GameState): string {
         <p class="latest-observation">${e(latest)}</p>
       </aside>
       <section class="activity-panel panel" aria-labelledby="activities-heading">
+        ${situation ? `<article class="situation-card situation-${e(situation.kind)}">
+          <div class="situation-meta"><span>${e(t('label.situation'))}</span><strong>${e(t(`situation.kind.${situation.kind}`))}</strong></div>
+          <h2>${e(t(situation.titleKey))}</h2>
+          <p>${e(formatForIntern(situation.descriptionKey, state))}</p>
+        </article>` : ''}
         <div class="section-heading">
           <div><p class="eyebrow">WEEKLY PLAN</p><h2 id="activities-heading">${e(t('label.schedule'))}</h2></div>
           <span>${state.selectedActivityIds.length} / 3</span>
@@ -160,17 +162,19 @@ function renderPlanning(state: GameState): string {
 
 function renderResult(state: GameState): string {
   if (state.pendingResults.length === 0) return ''
-  const nextLabel = state.week === 24
-    ? t('button.viewEnding')
-    : state.week % 4 === 0
-      ? t('button.viewReport')
-      : t('button.nextWeek')
+  const situation = situationById(state.currentSituationId)
+  const nextLabel = state.week === 24 ? t('button.finish') : t('button.nextWeek')
   return shell(`
     <main class="weekly-results panel fade-in">
       <div class="results-heading">
         <div><p class="eyebrow">WEEKLY RESULTS</p><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
         <span>${e(state.profile.name)}</span>
       </div>
+      ${situation ? `<article class="feedback-situation">
+        <span>${e(t(`situation.kind.${situation.kind}`))}</span>
+        <strong>${e(t(situation.titleKey))}</strong>
+        <p>${e(formatForIntern(situation.descriptionKey, state))}</p>
+      </article>` : ''}
       <div class="result-list">
         ${state.pendingResults.map(result => {
           const activity = activityById(result.activityId)
@@ -182,6 +186,7 @@ function renderResult(state: GameState): string {
               <span class="outcome outcome-${result.outcome}">${e(t(`outcome.${result.outcome}`))}</span>
             </header>
             <p class="event-copy">${e(result.text)}</p>
+            ${result.situationHint ? `<p class="situation-attribution hint-${e(result.situationHint)}"><strong>${e(t('label.situationEffect'))} · ${e(t(`situation.hint.${result.situationHint}`))}</strong>${e(formatForIntern(`situation.feedback.${result.situationHint}`, state))}</p>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
               <strong>${e(t(unlocked.nameKey))}</strong>
@@ -190,38 +195,40 @@ function renderResult(state: GameState): string {
           </article>`
         }).join('')}
       </div>
-      <div class="results-actions">${button('next-result', nextLabel, 'primary')}</div>
+      ${state.week % 4 === 0 && state.week < 24 ? renderReportSection(state) : ''}
+      ${state.week === 24 && state.endingId ? renderEndingSection(state) : ''}
+      <div class="results-actions">${state.week === 24
+        ? `${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}`
+        : button('next-feedback', nextLabel, 'primary')}</div>
     </main>
   `)
 }
 
-function renderReport(state: GameState): string {
+function renderReportSection(state: GameState): string {
   const month = state.week / 4
-  return shell(`
-    <main class="report-screen paper fade-in">
+  return `<section class="report-screen paper embedded-report">
       <p class="report-stamp">INTERN REPORT // MONTH ${month}</p>
       <h1>${e(formatForIntern(`report.title.${month}`, state))}</h1>
-      <p class="report-name">${e(state.profile.name)} · ${e(t(`gender.${state.profile.gender}`))}</p>
       <hr>
-      <h2>${e(t('label.behavior'))}</h2>
+      <h2>${e(t('label.confirmed'))}</h2>
       <ul>${reportLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
-      <h2>${e(t('label.traits'))}</h2>
-      ${traitChips(state)}
-      <h2>${e(t('label.direction'))}</h2>
-      <ol class="directions">${predictedEndings(state).map(ending => `<li>${e(t(ending.nameKey))}</li>`).join('')}</ol>
-      ${button('next-report', t('button.reportContinue'), 'ink-button')}
-    </main>
-  `)
+      <h2>${e(t('label.attention'))}</h2>
+      <ul>${reportAttentionLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
+      <h2>${e(t('label.trend'))}</h2>
+      <ul>${reportTrendLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
+      ${state.week >= 20 ? `<h2>${e(t('label.direction'))}</h2>
+      <ol class="directions">${predictedEndings(state).map(ending => `<li>${e(t(ending.nameKey))}</li>`).join('')}</ol>` : ''}
+    </section>`
 }
 
-function renderEnding(state: GameState): string {
+function renderEndingSection(state: GameState): string {
   const ending = endings.find(item => item.id === state.endingId)
   if (!ending) return ''
   const notable = state.eventHistory.filter(item => item.highlight).slice(-5)
   const evidence = notable.length >= 3 ? notable : state.eventHistory.slice(-5)
   const summaryKey = ending.summaryKeys[state.seed % 2] as string
-  return shell(`
-    <main class="ending-screen panel fade-in">
+  const nearby = nearbyEndings(state)
+  return `<section class="ending-screen embedded-ending">
       <p class="eyebrow">${e(t('label.ending'))}</p>
       <pre class="ending-art" aria-hidden="true">${e((ascii[ending.asciiKey] ?? []).join('\n').replace('name', state.profile.name))}</pre>
       <h1>${e(t(ending.nameKey))}</h1>
@@ -231,14 +238,12 @@ function renderEnding(state: GameState): string {
       <section class="ending-evidence">
         <h2>${e(t('label.behavior'))}</h2>
         <ul>${evidence.map(item => `<li>${e(item.text)}</li>`).join('')}</ul>
+        <h2>${e(t('label.confirmed'))}</h2>
+        <ul>${strongestEvidence(state, 5).map(id => `<li>${e(t(`evidence.${id}`))}</li>`).join('')}</ul>
       </section>
-      <div class="ending-actions">
-        ${button('new', t('button.again'), 'primary')}
-        ${button('dex', t('button.dex'))}
-        ${button('home', t('button.home'), 'quiet')}
-      </div>
-    </main>
-  `)
+      <section class="nearby-endings"><h2>${e(t('label.nearby'))}</h2><p>${nearby.map(item => e(t(item.nameKey))).join(' · ')}</p></section>
+      <section class="next-run"><h2>${e(t('label.nextRun'))}</h2><p>${e(t('ending.nextRun.generic'))}</p></section>
+    </section>`
 }
 
 function renderDex(): string {
@@ -264,9 +269,10 @@ function activityCard(id: string, state: GameState): string {
   const activity = activityById(id)
   if (!activity) return ''
   const selectedCount = state.selectedActivityIds.filter(selectedId => selectedId === id).length
+  const hint = hintForActivity(situationById(state.currentSituationId), id)
   return `<button class="activity-card ${selectedCount > 0 ? 'selected' : ''}" data-action="select-activity" data-id="${e(id)}" ${state.selectedActivityIds.length === 3 ? 'disabled' : ''}>
     <span class="activity-icon">${e(activity.icon)}</span>
-    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}</strong><small>${e(t(activity.descriptionKey))}</small></span>
+    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}</strong>${hint ? `<mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}<small>${e(t(activity.descriptionKey))}</small></span>
   </button>`
 }
 
