@@ -78,16 +78,15 @@ function renderTitle(): string {
         <span>INTERN OBSERVATION v0.1</span>
       </div>
       <h1 id="game-title">${e(t('app.title'))}</h1>
-      <p class="eyebrow">${e(t('app.subtitle'))}</p>
       <p class="tagline">${e(t('app.tagline'))}</p>
       <p class="intro">${e(t('app.intro'))}</p>
+      <div class="title-locale-inline">${localeSwitcher()}</div>
       <details class="achievement-fold">
         <summary>${e(t('button.achievements'))} <strong>${dex.discoveredAchievementIds.length}/${achievementIds.length}</strong></summary>
         ${dex.discoveredAchievementIds.length > 0
           ? `<ul class="achievement-list">${dex.discoveredAchievementIds.map(id => `<li><strong>${e(t(`achievement.${id}.name`))}</strong><p>${e(t(`achievement.${id}.description`))}</p></li>`).join('')}</ul>`
           : `<p class="achievement-empty">${e(t('label.noAchievements'))}</p>`}
       </details>
-      <div class="title-locale-inline">${localeSwitcher()}</div>
       <div class="title-actions">
         ${game ? button('continue', t('button.continue'), 'primary') : ''}
         ${button('new', t('button.new'), game ? '' : 'primary')}
