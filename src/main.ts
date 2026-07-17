@@ -147,12 +147,12 @@ function renderPlanning(state: GameState): string {
       </aside>
       <section class="activity-panel panel" aria-labelledby="activities-heading">
         ${situation ? `<article class="situation-card situation-${e(situation.kind)}">
-          <div class="situation-meta"><span>${e(t('label.situation'))}</span><strong>${e(t(`situation.kind.${situation.kind}`))}</strong></div>
-          <h2>${e(t(situation.titleKey))}</h2>
+          <div class="situation-headline"><span>${e(t('label.situation'))}</span><strong>${e(t(`situation.kind.${situation.kind}`))}</strong><h2>${e(t(situation.titleKey))}</h2></div>
           <p>${e(formatForIntern(situation.descriptionKey, state))}</p>
         </article>` : ''}
         <div class="section-heading">
-          <div><p class="eyebrow">WEEKLY PLAN</p><h2 id="activities-heading">${e(t('label.schedule'))}</h2></div>
+          <h2 id="activities-heading">${e(t('label.schedule'))}</h2>
+          <p class="eyebrow section-eyebrow">WEEKLY PLAN</p>
           <span>${state.selectedActivityIds.length} / 3</span>
         </div>
         <div class="schedule-bar">

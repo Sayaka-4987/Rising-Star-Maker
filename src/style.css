@@ -283,18 +283,44 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
   background: linear-gradient(135deg, rgba(155, 212, 169, .08), rgba(11, 16, 14, .2));
   box-shadow: inset 4px 0 0 var(--green);
 }
-.situation-card h2 { margin: 4px 0; font-size: 21px; }
-.situation-card p { margin: 0; color: #b7c8bd; font-size: 14px; line-height: 1.5; }
-.situation-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; letter-spacing: .1em; }
-.situation-meta strong { color: var(--green); }
+.situation-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.situation-headline span { flex: 0 0 auto; }
+.situation-headline strong { flex: 0 0 auto; color: var(--green); font-size: 12px; }
+.situation-headline h2 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: 17px;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.situation-card p { margin: 8px 0 0; color: #b7c8bd; font-size: 14px; line-height: 1.5; }
 .situation-trouble { border-color: #9a765b; box-shadow: inset 4px 0 0 #c7a17a; }
-.situation-trouble .situation-meta strong { color: #d8b58c; }
+.situation-trouble .situation-headline strong { color: #d8b58c; }
 .situation-rare { border-color: var(--amber); box-shadow: inset 4px 0 0 var(--amber), inset 0 0 30px rgba(230, 200, 134, .04); }
-.situation-rare .situation-meta strong { color: var(--amber); }
+.situation-rare .situation-headline strong { color: var(--amber); }
 
-.section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.section-heading { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .section-heading h1, .section-heading h2 { margin: 0; }
-.section-heading > span { color: var(--amber); font-size: 19px; }
+.section-heading .section-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: .14em;
+  color: var(--green);
+  opacity: .95;
+}
+.section-heading > span { margin-left: auto; color: var(--amber); font-size: 19px; }
 .activity-group { margin-top: 10px; }
 .activity-group h3 { margin: 0 0 8px; color: var(--muted); font-size: 13px; letter-spacing: .12em; }
 .activity-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
