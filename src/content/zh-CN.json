@@ -17,7 +17,7 @@
   "button.reportContinue": "收好月报，进入下个月",
   "button.home": "返回标题页",
   "button.again": "再招一名实习生",
-  "button.back": "返回",
+  "button.back": "返回标题页",
   "button.finish": "完成本次观察",
   "label.week": "第 {week} / 12 周",
   "label.gender": "性别：{gender}",

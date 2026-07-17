@@ -146,6 +146,44 @@ button:focus-visible {
   text-align: center;
 }
 
+.reveal-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding-block: clamp(18px, 5vh, 72px);
+}
+
+.reveal-screen .portrait {
+  margin: 0 auto 10px;
+  font-size: clamp(16px, 1vw + 12px, 22px);
+}
+
+.reveal-screen h1 {
+  margin: 2px 0;
+  font-size: clamp(36px, 2.2vw, 52px);
+}
+
+.reveal-screen .profile-meta {
+  margin: 6px 0 0;
+  font-size: clamp(14px, .7vw + 8px, 20px);
+}
+
+.reveal-screen blockquote {
+  width: min(1200px, 98%);
+  margin: 14px auto 0;
+  padding: 20px 24px;
+  font-size: clamp(14px, .55vw + 10px, 20px);
+  line-height: 1.85;
+}
+
+.reveal-screen .button.primary {
+  margin-top: 12px;
+  min-height: 52px;
+  min-width: 150px;
+}
+
 .app-shell > main.title-screen,
 .app-shell > main.center-screen,
 .app-shell > main.weekly-results,
@@ -739,8 +777,20 @@ button.schedule-slot { cursor: pointer; }
   }
 
   .delta-hint {
-    font-size: 0.74rem;
-    padding: 3px 9px;
+    font-size: 0.86rem;
+    padding: 4px 10px;
+    letter-spacing: .09em;
+  }
+
+  .situation-impact {
+    font-size: 0.78rem;
+    padding: 3px 10px;
+    gap: 7px;
+  }
+
+  .outcome {
+    font-size: 0.78rem;
+    padding: 4px 10px;
   }
 
   .result-decor-title { font-size: 0.78rem; }
@@ -748,6 +798,16 @@ button.schedule-slot { cursor: pointer; }
   .result-decor-copy {
     font-size: 0.82rem;
     line-height: 1.68;
+  }
+
+  .reveal-screen {
+    gap: 12px;
+    padding-block: clamp(26px, 6vh, 84px);
+  }
+
+  .reveal-screen blockquote {
+    margin-top: 18px;
+    padding: 22px 26px;
   }
 }
 

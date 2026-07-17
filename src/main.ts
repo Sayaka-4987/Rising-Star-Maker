@@ -135,11 +135,10 @@ function renderGame(state: GameState): string {
 function renderReveal(state: GameState): string {
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
-    <main class="center-screen panel fade-in">
+    <main class="center-screen reveal-screen panel fade-in">
       ${portrait(state.profile.portraitId, localizedProfileName(state.profile))}
       <h1>${e(localizedProfileName(state.profile))}</h1>
-      <p class="profile-meta">${e(formatForIntern('label.gender', state, { gender: t(`gender.${state.profile.gender}`) }))}</p>
-      <p class="profile-meta">${e(localizedProfilePronoun(state.profile))}</p>
+      <p class="profile-meta">${e(formatForIntern('label.gender', state, { gender: t(`gender.${state.profile.gender}`) }))} · ${e(localizedProfilePronoun(state.profile))}</p>
       <blockquote>${e(formatForIntern(state.profile.observationKey, state))}</blockquote>
       ${button('reveal', t('button.begin'), 'primary')}
     </main>
