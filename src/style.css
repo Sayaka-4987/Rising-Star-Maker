@@ -410,6 +410,10 @@ button.schedule-slot { cursor: pointer; }
   margin-top: 12px;
   line-height: 1.7;
 }
+.weekly-results.no-summary .result-decor {
+  margin-top: 14px;
+  min-height: 70px;
+}
 .weekly-results.no-summary .results-actions {
   margin-top: auto;
   padding-top: 16px;
@@ -469,6 +473,26 @@ button.schedule-slot { cursor: pointer; }
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .08em;
+}
+.result-decor {
+  margin-top: 10px;
+  padding: 10px 0;
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+  text-align: left;
+}
+.result-decor-title {
+  margin: 0;
+  color: var(--green);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.result-decor-copy {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 .trait-unlock { margin: 30px 0; padding: 22px; border: 1px solid var(--amber); background: rgba(230, 200, 134, .06); }
 .trait-unlock p { margin: 4px; color: var(--muted); }

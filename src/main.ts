@@ -3,7 +3,7 @@ import { getLocale, setLocale, t } from './content/text'
 import { activities, endings, traits } from './data/gameData'
 import { achievementIds, activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, localizedProfileName, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
-import type { GameState, HumanDex, SituationHint } from './game/types'
+import type { EventResult, GameState, HumanDex, SituationHint } from './game/types'
 
 const ascii = asciiData as Record<string, string[]>
 const rootElement = document.querySelector<HTMLDivElement>('#app')
@@ -140,7 +140,7 @@ function renderPlanning(state: GameState): string {
         <section class="log-inline">
           <h3>${e(t('label.log'))}</h3>
           <ol class="log-list compact">
-            ${state.eventHistory.slice(-12).reverse().map(item => `<li>${e(item.text)}</li>`).join('') || `<li>${e(t('label.none'))}</li>`}
+            ${state.eventHistory.slice(-12).reverse().map(item => `<li>${e(localizedEventText(item, state))}</li>`).join('') || `<li>${e(t('label.none'))}</li>`}
           </ol>
         </section>
       </aside>
@@ -203,7 +203,7 @@ function renderResult(state: GameState): string {
               <h2>${e(activity ? t(activity.labelKey) : '')}</h2>
               <span class="outcome outcome-${result.outcome}">${e(t(`outcome.${result.outcome}`))}</span>
             </header>
-            <p class="event-copy">${e(result.text)}</p>
+            <p class="event-copy">${e(localizedEventText(result, state))}</p>
             ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.hint.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.hint.${result.situationHint}`))}">${e(situationImpactSymbol(result.situationHint))}</p>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
@@ -213,6 +213,10 @@ function renderResult(state: GameState): string {
           </article>`
         }).join('')}
       </div>
+      ${!hasReport && !hasEnding ? `<section class="result-decor" aria-label="${e(t('label.resultDeckTitle'))}">
+        <p class="result-decor-title">${e(t('label.resultDeckTitle'))}</p>
+        <p class="result-decor-copy">${e(t('label.resultDeckCopy'))}</p>
+      </section>` : ''}
       ${hasReport ? renderReportSection(state) : ''}
       ${hasEnding ? renderEndingSection(state) : ''}
       <div class="results-actions">${state.week === 24
@@ -263,7 +267,7 @@ function renderEndingSection(state: GameState): string {
       <blockquote>${e(formatForIntern(summaryKey, state))}</blockquote>
       <section class="ending-evidence">
         <h2>${e(t('label.behavior'))}</h2>
-        <ul>${evidence.map(item => `<li>${e(item.text)}</li>`).join('')}</ul>
+        <ul>${evidence.map(item => `<li>${e(localizedEventText(item, state))}</li>`).join('')}</ul>
         <h2>${e(t('label.confirmed'))}</h2>
         <ul>${strongestEvidence(state, 5).map(id => `<li>${e(t(`evidence.${id}`))}</li>`).join('')}</ul>
       </section>
@@ -377,6 +381,10 @@ function localizedProfilePronoun(profile: GameState['profile']): string {
 
 function localizedGenericInternName(): string {
   return getLocale() === 'en-US' ? 'an intern' : '一名实习生'
+}
+
+function localizedEventText(event: EventResult, state: GameState): string {
+  return event.textKey ? formatForIntern(event.textKey, state) : event.text
 }
 
 function situationImpactSymbol(hint: SituationHint): string {

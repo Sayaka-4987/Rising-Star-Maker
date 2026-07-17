@@ -38,6 +38,8 @@
   "label.unknown": "Not observed yet",
   "label.emptySlot": "Empty Slot",
   "label.resultProgress": "Weekly Progress {current} / 3",
+  "label.resultDeckTitle": "Weekly Observation Summary",
+  "label.resultDeckCopy": "All three activities are complete and archived. Move to next week, or take one more look at this set of outcomes.",
   "label.weekResults": "Week {week} Results",
   "label.portrait": "View Intern Portrait",
   "label.situation": "What Happened This Week",

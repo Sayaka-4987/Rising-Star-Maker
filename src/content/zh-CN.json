@@ -38,6 +38,8 @@
   "label.unknown": "尚未观察到",
   "label.emptySlot": "空行程",
   "label.resultProgress": "本周记录 {current} / 3",
+  "label.resultDeckTitle": "本周观察摘要",
+  "label.resultDeckCopy": "三项安排已经完成，记录已归档。你可以直接进入下一周，或先再看一遍这组结果。",
   "label.weekResults": "第 {week} 周结果",
   "label.portrait": "查看实习生头像",
   "label.situation": "本周新闻",
