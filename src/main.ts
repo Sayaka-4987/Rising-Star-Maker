@@ -105,7 +105,7 @@ function renderGame(state: GameState): string {
   switch (state.phase) {
     case 'reveal': return renderReveal(state)
     case 'action': return renderPlanning(state)
-    case 'feedback': return renderResult(state)
+    case 'feedback': return state.week === 24 && state.endingId && state.endingRevealed ? renderEndingPage(state) : renderResult(state)
   }
 }
 
@@ -180,9 +180,8 @@ function renderResult(state: GameState): string {
   const situation = situationById(state.currentSituationId)
   const nextLabel = state.week === 24 ? t('button.finish') : t('button.nextWeek')
   const hasReport = state.week % 4 === 0 && state.week < 24
-  const hasEnding = state.week === 24 && Boolean(state.endingId) && Boolean(state.endingRevealed)
   const canRevealEnding = state.week === 24 && Boolean(state.endingId) && !state.endingRevealed
-  const resultLayoutClass = !hasReport && !hasEnding ? ' no-summary' : ''
+  const resultLayoutClass = !hasReport ? ' no-summary' : ''
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), localeSwitcher())}
     <main class="weekly-results panel fade-in${resultLayoutClass}">
@@ -217,17 +216,26 @@ function renderResult(state: GameState): string {
           </article>`
         }).join('')}
       </div>
-      ${!hasReport && !hasEnding ? `<section class="result-decor" aria-label="${e(t('label.resultDeckTitle'))}">
+      ${!hasReport ? `<section class="result-decor" aria-label="${e(t('label.resultDeckTitle'))}">
         <p class="result-decor-title">${e(t('label.resultDeckTitle'))}</p>
         <p class="result-decor-copy">${e(t('label.resultDeckCopy'))}</p>
       </section>` : ''}
       ${hasReport ? renderReportSection(state) : ''}
-      ${hasEnding ? renderEndingSection(state) : ''}
       <div class="results-actions">${state.week === 24
         ? canRevealEnding
           ? `${button('view-ending', t('button.viewEnding'), 'primary')}${button('home', t('button.home'), 'quiet')}`
           : `${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}`
         : button('next-feedback', nextLabel, 'primary')}</div>
+    </main>
+  `)
+}
+
+function renderEndingPage(state: GameState): string {
+  return shell(`
+    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.viewEnding')), localeSwitcher())}
+    <main class="ending-screen panel fade-in">
+      ${renderEndingContent(state)}
+      <div class="ending-actions">${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}</div>
     </main>
   `)
 }
@@ -261,14 +269,14 @@ function renderReportSection(state: GameState): string {
     </details>`
 }
 
-function renderEndingSection(state: GameState): string {
+function renderEndingContent(state: GameState): string {
   const ending = endings.find(item => item.id === state.endingId)
   if (!ending) return ''
   const notable = state.eventHistory.filter(item => item.highlight).slice(-5)
   const evidence = notable.length >= 3 ? notable : state.eventHistory.slice(-5)
   const summaryKey = ending.summaryKeys[state.seed % 2] as string
   const nearby = nearbyEndings(state)
-  return `<section class="ending-screen embedded-ending">
+  return `<section class="embedded-ending">
       <pre class="ending-art" aria-hidden="true">${e((ascii[ending.asciiKey] ?? []).join('\n').replace('name', localizedProfileName(state.profile)))}</pre>
       <h1>${e(t(ending.nameKey))}</h1>
       <p class="rarity rarity-${ending.rarity}">${e(t('label.rarity', { rarity: t(`rarity.${ending.rarity}`) }))}</p>
