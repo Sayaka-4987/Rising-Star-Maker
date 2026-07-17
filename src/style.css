@@ -431,8 +431,22 @@ button.schedule-slot { cursor: pointer; }
 .feedback-situation span { margin-right: 12px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
 .feedback-situation strong { font-size: 16px; }
 .feedback-situation p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
-.result-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.result-card { min-height: 0; padding: 14px; border: 1px solid var(--line); background: #0e1712; box-shadow: inset 3px 0 0 var(--line); }
+.result-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+.result-card {
+  min-height: 0;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: #0e1712;
+  box-shadow: inset 3px 0 0 var(--line);
+  display: flex;
+  flex-direction: column;
+}
 .result-card-criticalFailure { box-shadow: inset 3px 0 0 var(--red); }
 .result-card-failure { box-shadow: inset 3px 0 0 #c7a17a; }
 .result-card-success { box-shadow: inset 3px 0 0 var(--green); }
