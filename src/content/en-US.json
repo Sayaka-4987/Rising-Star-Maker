@@ -80,7 +80,7 @@
   "situation.docs_refresh.title": "Documentation Needs Updating",
   "situation.docs_refresh.description": "Someone followed old docs and took the wrong path, and we realized several common manuals no longer match reality. Whoever touches it this week updates a section.",
   "situation.new_teammate.title": "A New Teammate Arrives",
-  "situation.new_teammate.description": "A new teammate just joined and knows nothing about the business yet. Sometimes you only realize what you understand after explaining it to someone else.",
+  "situation.new_teammate.description": "A new teammate just joined and knows nothing about the business yet. Sometimes what someone truly understands only becomes clear after they explain it to another person.",
   "situation.tech_debt_week.title": "Tech Debt Cleanup Week",
   "situation.tech_debt_week.description": "No rush for new features this week. Everyone picked old issues that have sat around too long. Doing a lot is not the goal, do not fix one bug and create two more.",
   "situation.quiet_week.title": "A Rare Quiet Week",

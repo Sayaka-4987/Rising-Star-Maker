@@ -149,6 +149,7 @@ button:focus-visible {
 .app-shell > main.title-screen,
 .app-shell > main.center-screen,
 .app-shell > main.weekly-results,
+.app-shell > main.ending-screen,
 .app-shell > main.dex-screen {
   flex: 1;
   min-height: 0;
