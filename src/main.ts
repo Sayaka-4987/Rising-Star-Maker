@@ -3,7 +3,7 @@ import { getLocale, setLocale, t } from './content/text'
 import { activities, endings, traits } from './data/gameData'
 import { achievementIds, activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, localizedProfileName, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
-import type { GameState, HumanDex } from './game/types'
+import type { GameState, HumanDex, SituationHint } from './game/types'
 
 const ascii = asciiData as Record<string, string[]>
 const rootElement = document.querySelector<HTMLDivElement>('#app')
@@ -204,7 +204,7 @@ function renderResult(state: GameState): string {
               <span class="outcome outcome-${result.outcome}">${e(t(`outcome.${result.outcome}`))}</span>
             </header>
             <p class="event-copy">${e(result.text)}</p>
-            ${result.situationHint ? `<p class="situation-attribution hint-${e(result.situationHint)}"><strong>${e(t('label.situationEffect'))} · ${e(t(`situation.hint.${result.situationHint}`))}</strong>${e(formatForIntern(`situation.feedback.${result.situationHint}`, state))}</p>` : ''}
+            ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.hint.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.hint.${result.situationHint}`))}">${e(situationImpactSymbol(result.situationHint))}</p>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
               <strong>${e(t(unlocked.nameKey))}</strong>
@@ -369,6 +369,12 @@ function localizedProfilePronoun(profile: GameState['profile']): string {
 
 function localizedGenericInternName(): string {
   return getLocale() === 'en-US' ? 'an intern' : '一名实习生'
+}
+
+function situationImpactSymbol(hint: SituationHint): string {
+  if (hint === 'opportunity') return '↑↑'
+  if (hint === 'risk') return '↓↓'
+  return '↔'
 }
 
 function recordEnding(state: GameState): void {
