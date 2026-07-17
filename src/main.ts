@@ -207,7 +207,7 @@ function renderResult(state: GameState): string {
               <span class="outcome outcome-${result.outcome}">${e(t(`outcome.${result.outcome}`))}</span>
             </header>
             <p class="event-copy">${e(localizedEventText(result, state))}</p>
-            ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.hint.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.hint.${result.situationHint}`))}">${e(situationImpactSymbol(result.situationHint))}</p>` : ''}
+            ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.effect.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.effect.${result.situationHint}`))}"><span>${e(situationImpactSymbol(result.situationHint))}</span><span>${e(t(`situation.effect.${result.situationHint}`))}</span></p>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
               <strong>${e(t(unlocked.nameKey))}</strong>
