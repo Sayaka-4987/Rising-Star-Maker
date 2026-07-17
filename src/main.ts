@@ -264,6 +264,9 @@ function shouldShowResultDecor(state: GameState, hasReport: boolean): boolean {
   if (hasReport) return false
   if (state.pendingResults.length === 0) return false
 
+  const compactLandscapeViewport = window.matchMedia('(min-width: 781px) and (orientation: landscape) and (max-height: 960px)').matches
+  if (compactLandscapeViewport) return false
+
   const totalEventLength = state.pendingResults
     .map(result => localizedEventText(result, state).length)
     .reduce((sum, length) => sum + length, 0)
@@ -273,6 +276,9 @@ function shouldShowResultDecor(state: GameState, hasReport: boolean): boolean {
     || (result.tags?.length ?? 0) >= 3
     || Object.keys(result.evidenceDeltas ?? {}).length >= 4,
   )
+
+  const likelyCrowdedCards = state.pendingResults.length >= 3 && averageEventLength >= 44
+  if (likelyCrowdedCards) return false
 
   return !(hasRichCardContent || averageEventLength >= 60)
 }
