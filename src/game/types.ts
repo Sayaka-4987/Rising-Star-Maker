@@ -119,7 +119,7 @@ export interface EvidenceLedger {
 }
 
 export interface GameState {
-  schemaVersion: 3
+  schemaVersion: 4
   seed: number
   rngState: number
   phase: GamePhase
