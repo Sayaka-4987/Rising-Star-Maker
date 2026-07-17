@@ -186,7 +186,6 @@ function renderResult(state: GameState): string {
         : ''}
       <div class="results-heading">
         <div><p class="eyebrow">WEEKLY RESULTS</p><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
-        <span>${e(localizedProfileName(state.profile))}</span>
       </div>
       ${situation ? `<article class="feedback-situation">
         <span>${e(t(`situation.kind.${situation.kind}`))}</span>
@@ -225,20 +224,27 @@ function renderResult(state: GameState): string {
 function renderReportSection(state: GameState): string {
   const month = state.week / 4
   const isChinese = getLocale() === 'zh-CN'
-  return `<section class="report-screen paper embedded-report">
-      ${isChinese
-        ? `<div class="report-header"><h1>${e(formatForIntern(`report.title.${month}`, state))}</h1><p class="report-stamp">INTERN REPORT // MONTH ${month}</p></div>`
-        : `<p class="report-stamp">INTERN REPORT // MONTH ${month}</p><h1>${e(formatForIntern(`report.title.${month}`, state))}</h1>`}
-      <hr>
-      <h2>${e(t('label.confirmed'))}</h2>
-      <ul>${reportLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
-      <h2>${e(t('label.attention'))}</h2>
-      <ul>${reportAttentionLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
-      <h2>${e(t('label.trend'))}</h2>
-      <ul>${reportTrendLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
-      ${state.week >= 20 ? `<h2>${e(t('label.direction'))}</h2>
-      <ol class="directions">${predictedEndings(state).map(ending => `<li>${e(t(ending.nameKey))}</li>`).join('')}</ol>` : ''}
-    </section>`
+  const foldTitle = isChinese ? `月度报告 · 第 ${month} 月` : `Intern Report · Month ${month}`
+  return `<details class="report-fold embedded-report">
+      <summary class="report-fold-summary">
+        <strong>${e(foldTitle)}</strong>
+        <span class="report-fold-toggle"><span class="report-fold-closed">${e(isChinese ? '展开' : 'Expand')}</span><span class="report-fold-open">${e(isChinese ? '收起' : 'Collapse')}</span></span>
+      </summary>
+      <section class="report-screen paper">
+        ${isChinese
+          ? `<div class="report-header"><h1>${e(formatForIntern(`report.title.${month}`, state))}</h1><p class="report-stamp">INTERN REPORT // MONTH ${month}</p></div>`
+          : `<p class="report-stamp">INTERN REPORT // MONTH ${month}</p><h1>${e(formatForIntern(`report.title.${month}`, state))}</h1>`}
+        <hr>
+        <h2>${e(t('label.confirmed'))}</h2>
+        <ul>${reportLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
+        <h2>${e(t('label.attention'))}</h2>
+        <ul>${reportAttentionLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
+        <h2>${e(t('label.trend'))}</h2>
+        <ul>${reportTrendLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
+        ${state.week >= 20 ? `<h2>${e(t('label.direction'))}</h2>
+        <ol class="directions">${predictedEndings(state).map(ending => `<li>${e(t(ending.nameKey))}</li>`).join('')}</ol>` : ''}
+      </section>
+    </details>`
 }
 
 function renderEndingSection(state: GameState): string {

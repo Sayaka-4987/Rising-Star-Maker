@@ -15,6 +15,7 @@ export function loadGame(): GameState | null {
       pendingAchievementIds: game.pendingAchievementIds ?? [],
       unlockedAchievementIds: game.unlockedAchievementIds ?? [],
       evidence: { ...game.evidence, weeklyRisks: game.evidence.weeklyRisks ?? [] },
+      traitProgress: game.traitProgress ?? {},
     }
   }
   return null

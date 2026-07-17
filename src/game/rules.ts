@@ -42,6 +42,9 @@ export const achievementIds = [
   'internship_survivor',
 ] as const
 
+const TRAIT_CONFIRMATION_WEEKS = 3
+const TRAIT_PROGRESS_DECAY = 1
+
 export function createNewGame(seed: number): GameState {
   let rngState = seed >>> 0 || 0x9e3779b9
   let nameKey: string
@@ -86,6 +89,7 @@ export function createNewGame(seed: number): GameState {
       risks: zeroRisks(),
       weeklyRisks: [],
     },
+    traitProgress: {},
     updatedAt: new Date().toISOString(),
   }
 }
@@ -119,6 +123,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
       risks: { ...game.evidence.risks },
       weeklyRisks: [...game.evidence.weeklyRisks],
     },
+    traitProgress: { ...game.traitProgress },
   }
   const pendingResults: EventResult[] = []
   const weeklyEvidence: Partial<EvidenceTotals> = {}
@@ -147,8 +152,6 @@ export function resolveSelectedWeek(game: GameState): GameState {
     applyEvidence(working.evidence.totals, weeklyEvidence, evidenceDeltas)
     applyRisks(working.evidence.risks, weeklyRisks, riskDeltas(activityId, outcome, event.counterDeltas?.scopeCreep ?? 0))
 
-    const unlockedTraitId = findNextTrait(working)
-    if (unlockedTraitId) working.traits.push(unlockedTraitId)
     const text = formatForIntern(textKey, working)
     const result: EventResult = {
       eventId: event.id,
@@ -161,11 +164,13 @@ export function resolveSelectedWeek(game: GameState): GameState {
       week: game.week,
       situationHint,
       evidenceDeltas,
-      unlockedTraitId,
     }
     pendingResults.push(result)
     working.eventHistory.push(result)
   }
+
+  const unlockedTraitId = progressTraitsAndUnlock(working)
+  if (unlockedTraitId && pendingResults.length > 0) pendingResults[pendingResults.length - 1]!.unlockedTraitId = unlockedTraitId
 
   working.evidence.weeklyDeltas[game.week - 1] = weeklyEvidence
   working.evidence.weeklyRisks[game.week - 1] = weeklyRisks
@@ -493,10 +498,31 @@ function adjustedEndingScore(game: GameState, ending: Ending): number {
   return scoreEnding(game, ending) + ((hash >>> 0) % 501) / 100
 }
 
-function findNextTrait(game: GameState): string | undefined {
-  return [...traits]
-    .filter(trait => !game.traits.includes(trait.id) && traitCondition(trait.id, game))
-    .sort((a, b) => b.priority - a.priority)[0]?.id
+function progressTraitsAndUnlock(game: GameState): string | undefined {
+  const progress = { ...game.traitProgress }
+  for (const trait of traits) {
+    if (game.traits.includes(trait.id)) {
+      delete progress[trait.id]
+      continue
+    }
+    const current = progress[trait.id] ?? 0
+    if (traitCondition(trait.id, game)) {
+      progress[trait.id] = Math.min(TRAIT_CONFIRMATION_WEEKS, current + 1)
+    } else {
+      const decayed = Math.max(0, current - TRAIT_PROGRESS_DECAY)
+      if (decayed > 0) progress[trait.id] = decayed
+      else delete progress[trait.id]
+    }
+  }
+
+  game.traitProgress = progress
+  const unlocked = [...traits]
+    .filter(trait => !game.traits.includes(trait.id) && (progress[trait.id] ?? 0) >= TRAIT_CONFIRMATION_WEEKS)
+    .sort((a, b) => b.priority - a.priority)[0]
+  if (!unlocked) return undefined
+  game.traits.push(unlocked.id)
+  delete game.traitProgress[unlocked.id]
+  return unlocked.id
 }
 
 function unlockAchievements(game: GameState, scheduledActivityIds: string[]): string[] {

@@ -139,6 +139,7 @@ export interface GameState {
   situationHistory: string[]
   rareSituationCount: number
   evidence: EvidenceLedger
+  traitProgress: Record<string, number>
   endingId?: string
   updatedAt: string
 }
