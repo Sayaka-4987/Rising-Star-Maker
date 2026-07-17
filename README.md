@@ -1,5 +1,7 @@
 # Rising Star Maker / 职场新星梦工厂
 
+[▶ Play](https://sayaka-4987.github.io/Rising-Star-Maker/)
+
 ## English
 
 *Rising Star Maker* is a replayable internship growth simulator with mouse-based controls and an ASCII visual style, inspired by life-simulation raising games like *Princess Maker* and *Volcano Princess*.
