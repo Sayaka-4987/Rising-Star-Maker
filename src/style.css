@@ -301,6 +301,15 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
   text-align: left;
 }
 .log-inline h3 { margin-top: 0; font-size: 14px; }
+.log-inline-mobile { display: none; }
+.log-inline-mobile > summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+}
+.log-inline-mobile > summary::-webkit-details-marker { display: none; }
+.log-inline-mobile[open] > summary { color: var(--green); }
 
 .situation-card {
   margin: 0 0 10px;
@@ -713,9 +722,22 @@ button.schedule-slot { cursor: pointer; }
   .intern-panel, .activity-panel, .log-panel { padding: 12px; }
   .portrait-desktop { display: none; }
   .portrait-fold { display: block; }
-  .portrait-fold .portrait { margin: 10px auto 6px; }
+  .portrait-fold { text-align: center; }
+  .portrait-fold > summary { text-align: left; }
+  .portrait-fold .portrait {
+    display: block;
+    width: fit-content;
+    margin: 10px auto 6px;
+  }
   .latest-observation { margin-top: 10px; padding-top: 10px; }
   .log-inline { margin-top: 14px; padding-top: 12px; }
+  .log-inline-desktop { display: none; }
+  .log-inline-mobile { display: block; }
+  .log-inline-mobile > summary {
+    padding: 0;
+    border: 0;
+  }
+  .log-inline-mobile .log-list.compact { margin-top: 10px; }
   .section-heading { gap: 10px; }
   .activity-group { margin-top: 12px; }
   .schedule-bar { margin-top: 20px; padding-top: 14px; }
