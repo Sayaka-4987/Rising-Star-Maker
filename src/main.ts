@@ -110,7 +110,6 @@ function renderReveal(state: GameState): string {
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', localeSwitcher())}
     <main class="center-screen panel fade-in">
-      <p class="eyebrow">NEW INTERN RECEIVED</p>
       ${portrait(state.profile.portraitId, localizedProfileName(state.profile))}
       <h1>${e(localizedProfileName(state.profile))}</h1>
       <p class="profile-meta">${e(formatForIntern('label.gender', state, { gender: t(`gender.${state.profile.gender}`) }))}</p>
@@ -152,7 +151,6 @@ function renderPlanning(state: GameState): string {
         </article>` : ''}
         <div class="section-heading">
           <h2 id="activities-heading">${e(t('label.schedule'))}</h2>
-          <p class="eyebrow section-eyebrow">WEEKLY PLAN</p>
           <span>${state.selectedActivityIds.length} / 3</span>
         </div>
         <div class="schedule-bar">
@@ -185,7 +183,7 @@ function renderResult(state: GameState): string {
         ? `<section class="achievement-toast" aria-live="polite"><strong>${e(t('label.newAchievement'))}</strong><ul>${state.pendingAchievementIds.map(id => `<li>${e(t(`achievement.${id}.name`))}</li>`).join('')}</ul></section>`
         : ''}
       <div class="results-heading">
-        <div><p class="eyebrow">WEEKLY RESULTS</p><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
+        <div><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
       </div>
       ${situation ? `<article class="feedback-situation">
         <span>${e(t(`situation.kind.${situation.kind}`))}</span>
@@ -255,7 +253,6 @@ function renderEndingSection(state: GameState): string {
   const summaryKey = ending.summaryKeys[state.seed % 2] as string
   const nearby = nearbyEndings(state)
   return `<section class="ending-screen embedded-ending">
-      <p class="eyebrow">${e(t('label.ending'))}</p>
       <pre class="ending-art" aria-hidden="true">${e((ascii[ending.asciiKey] ?? []).join('\n').replace('name', localizedProfileName(state.profile)))}</pre>
       <h1>${e(t(ending.nameKey))}</h1>
       <p class="rarity rarity-${ending.rarity}">${e(t('label.rarity', { rarity: t(`rarity.${ending.rarity}`) }))}</p>
@@ -280,7 +277,7 @@ function renderDex(): string {
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('button.dex')), `${button('home', t('button.back'), 'quiet small')}${localeSwitcher()}`)}
     <main class="dex-screen panel fade-in">
-      <div class="section-heading"><div><p class="eyebrow">HUMANDEX</p><h1>${e(t('button.dex'))}</h1></div></div>
+      <div class="section-heading"><h1>${e(t('button.dex'))}</h1></div>
       <p>${e(t('label.games', { count: dex.gamesCompleted }))}</p>
       <section><h2>${e(t('label.dexTraits'))}</h2><div class="dex-grid">
         ${traits.map(trait => dex.discoveredTraitIds.includes(trait.id)

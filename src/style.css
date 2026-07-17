@@ -1,7 +1,7 @@
 :root {
   color: #dce9df;
   background: #0b100e;
-  font-family: 'Cascadia Mono', Consolas, 'Noto Sans Mono CJK SC', 'Sarasa Mono SC', 'Microsoft YaHei UI', monospace;
+  font-family: 'Sarasa Mono SC', 'Noto Sans Mono CJK SC', 'Cascadia Mono', Consolas, 'Microsoft YaHei UI', 'Noto Sans CJK SC', monospace;
   font-synthesis: none;
   --bg: #0b100e;
   --panel: #111a16;
@@ -16,7 +16,10 @@
   --shadow: rgba(0, 0, 0, 0.36);
 }
 
-* { box-sizing: border-box; }
+* , *::before, *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
 
 body {
   margin: 0;
@@ -29,7 +32,9 @@ body {
   background-size: 24px 24px, 24px 24px, auto;
 }
 
-button, input { font: inherit; }
+html, body, #app { font-family: inherit; }
+
+button, input, textarea, select { font: inherit; }
 button { color: inherit; }
 
 html { font-size: 17px; }
@@ -154,7 +159,6 @@ button:focus-visible {
 .title-screen {
   width: min(760px, 100%);
   margin: auto;
-  font-family: 'Segoe UI', 'Microsoft YaHei UI', 'Noto Sans CJK SC', 'PingFang SC', Arial, sans-serif;
   position: relative;
   padding-top: clamp(36px, 6vw, 60px);
 }
