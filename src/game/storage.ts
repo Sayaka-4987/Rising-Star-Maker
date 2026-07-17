@@ -9,12 +9,13 @@ export function loadGame(): GameState | null {
   if (!value) return null
   if ((value as GameState).schemaVersion === 4) {
     const game = value as GameState
+    const normalizedEvidence = normalizeEvidenceLedger(game.evidence)
     return {
       ...game,
       endingId: game.endingId === 'developer_relations' ? 'technical_community' : game.endingId,
       pendingAchievementIds: game.pendingAchievementIds ?? [],
       unlockedAchievementIds: game.unlockedAchievementIds ?? [],
-      evidence: { ...game.evidence, weeklyRisks: game.evidence.weeklyRisks ?? [] },
+      evidence: normalizedEvidence,
       traitProgress: game.traitProgress ?? {},
       endingRevealed: game.endingRevealed ?? false,
     }
@@ -88,3 +89,23 @@ function read<T>(key: string, validate: (value: T) => boolean): T | null {
 }
 
 type LegacyGameState = never
+
+function normalizeEvidenceLedger(evidence: GameState['evidence']): GameState['evidence'] {
+  const totals = Object.fromEntries(evidenceIds.map(id => [id, evidence.totals?.[id] ?? 0])) as EvidenceTotals
+  const risks = Object.fromEntries(riskIds.map(id => [id, evidence.risks?.[id] ?? 0])) as RiskTotals
+  const weeklyDeltas = (evidence.weeklyDeltas ?? []).map(delta =>
+    Object.fromEntries(
+      evidenceIds
+        .filter(id => (delta?.[id] ?? 0) > 0)
+        .map(id => [id, delta?.[id] ?? 0]),
+    ) as Partial<EvidenceTotals>,
+  )
+  const weeklyRisks = (evidence.weeklyRisks ?? []).map(delta =>
+    Object.fromEntries(
+      riskIds
+        .filter(id => (delta?.[id] ?? 0) > 0)
+        .map(id => [id, delta?.[id] ?? 0]),
+    ) as Partial<RiskTotals>,
+  )
+  return { totals, weeklyDeltas, risks, weeklyRisks }
+}

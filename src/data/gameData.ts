@@ -44,8 +44,8 @@ export const weeklySituations: WeeklySituation[] = [
   situation('tech_debt_week', 'common', ['fix_bug', 'write_tests'], ['build_feature'], ['read_docs'], ['engineering', 'reliability']),
   situation('quiet_week', 'common', ['read_docs', 'friday_project'], [], ['mentor_1on1'], ['ownership']),
   situation('customer_visit', 'opportunity', ['demo'], ['friday_project'], ['build_feature', 'team_lunch'], ['customerFacing']),
-  situation('internal_tech_fair', 'opportunity', ['tech_talk', 'demo'], [], ['friday_project'], ['communication', 'community']),
-  situation('open_source_issue', 'opportunity', ['friday_project'], [], ['read_docs'], ['community']),
+  situation('internal_tech_fair', 'opportunity', ['tech_talk', 'demo'], [], ['friday_project'], ['communication', 'community', 'gaming', 'music']),
+  situation('open_source_issue', 'opportunity', ['friday_project'], [], ['read_docs'], ['community', 'gaming']),
   situation('cross_team_invite', 'opportunity', ['pair_programming', 'read_docs'], [], ['mentor_1on1'], ['leadership', 'communication']),
   situation('research_seminar', 'opportunity', ['tech_talk', 'read_docs'], [], ['write_tests'], ['research']),
   situation('test_env_unstable', 'trouble', ['touch_kubernetes', 'write_tests'], ['build_feature'], ['fix_bug'], ['incidentResponse', 'reliability']),
@@ -54,15 +54,15 @@ export const weeklySituations: WeeklySituation[] = [
   situation('incident_wave', 'trouble', ['production_incident', 'fix_bug'], ['friday_project'], ['write_tests'], ['incidentResponse']),
   situation('team_disagreement', 'trouble', ['mentor_1on1', 'team_lunch'], ['pair_programming'], ['tech_talk'], ['leadership', 'communication']),
   situation('project_spotlight', 'rare', ['friday_project', 'demo'], [], ['tech_talk'], ['community', 'customerFacing'], 5),
-  situation('flight_club_day', 'rare', ['team_lunch', 'friday_project'], [], ['read_docs'], ['aviation'], 5),
+  situation('flight_club_day', 'rare', ['team_lunch', 'friday_project'], [], ['read_docs'], ['aviation', 'photography'], 5),
   situation('customer_escalation', 'rare', ['demo', 'fix_bug', 'production_incident'], [], ['team_lunch'], ['customerFacing', 'incidentResponse'], 5),
   situation('research_collaboration', 'rare', ['read_docs', 'tech_talk'], [], ['write_tests'], ['research'], 5),
-  situation('team_reorg', 'rare', ['mentor_1on1', 'team_lunch'], [], ['tech_talk'], ['leadership', 'ownership'], 5),
+  situation('team_reorg', 'rare', ['mentor_1on1', 'team_lunch'], [], ['tech_talk'], ['leadership', 'ownership', 'volunteering'], 5),
   situation('mobile_launch', 'opportunity', ['build_feature', 'demo'], ['friday_project'], ['write_tests'], ['engineering', 'productSense'], 6),
   situation('security_review', 'trouble', ['read_docs', 'write_tests'], ['touch_kubernetes'], ['production_incident'], ['reliability', 'incidentResponse'], 6),
   situation('data_migration', 'trouble', ['write_tests', 'touch_kubernetes'], ['build_feature'], ['fix_bug'], ['engineering', 'reliability'], 6),
   situation('model_experiment', 'opportunity', ['read_docs', 'build_feature'], [], ['write_tests', 'tech_talk'], ['research', 'engineering'], 6),
-  situation('user_interviews', 'opportunity', ['mentor_1on1', 'demo'], ['build_feature'], ['team_lunch'], ['productSense', 'customerFacing'], 6),
+  situation('user_interviews', 'opportunity', ['mentor_1on1', 'demo'], ['build_feature'], ['team_lunch'], ['productSense', 'customerFacing', 'photography'], 6),
 ]
 
 type OutcomeSeed = Omit<EventTemplate, 'id' | 'activityId' | 'outcome' | 'textKeys' | 'weight'>
@@ -77,8 +77,8 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   build_feature: {
     criticalFailure: { statDeltas: { technical: -3, chaos: 3 }, counterDeltas: { scopeCreep: 2 }, highlight: true },
     failure: { statDeltas: { creativity: -1 }, counterDeltas: { scopeCreep: 1 } },
-    success: { statDeltas: { creativity: 1 } },
-    criticalSuccess: { statDeltas: { creativity: 3, ambition: 1 }, tags: ['aviation'], highlight: true },
+    success: { statDeltas: { creativity: 1 }, tags: ['gaming'] },
+    criticalSuccess: { statDeltas: { creativity: 3, ambition: 1 }, tags: ['aviation', 'gaming'], highlight: true },
   },
   write_tests: {
     criticalFailure: { statDeltas: { technical: -3, chaos: 3 }, highlight: true },
@@ -89,8 +89,8 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   read_docs: {
     criticalFailure: { statDeltas: { curiosity: -3 }, highlight: true },
     failure: { statDeltas: { technical: -1 } },
-    success: { counterDeltas: { docsRead: 1 } },
-    criticalSuccess: { statDeltas: { curiosity: 2, independence: 1 }, counterDeltas: { docsRead: 2 }, tags: ['aviation'], highlight: true },
+    success: { counterDeltas: { docsRead: 1 }, tags: ['finance'] },
+    criticalSuccess: { statDeltas: { curiosity: 2, independence: 1 }, counterDeltas: { docsRead: 2 }, tags: ['aviation', 'finance'], highlight: true },
   },
   pair_programming: {
     criticalFailure: { statDeltas: { social: -4, independence: -2 }, highlight: true },
@@ -101,26 +101,26 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   tech_talk: {
     criticalFailure: { statDeltas: { social: -3, curiosity: -2 }, highlight: true },
     failure: { statDeltas: { social: -1 } },
-    success: { counterDeltas: { questionsAsked: 1 } },
-    criticalSuccess: { statDeltas: { curiosity: 2, social: 2 }, counterDeltas: { questionsAsked: 2 }, highlight: true },
+    success: { counterDeltas: { questionsAsked: 1 }, tags: ['music'] },
+    criticalSuccess: { statDeltas: { curiosity: 2, social: 2 }, counterDeltas: { questionsAsked: 2 }, tags: ['music'], highlight: true },
   },
   team_lunch: {
     criticalFailure: { statDeltas: { social: -4, chaos: 2 }, counterDeltas: { socialEscapes: 1 }, highlight: true },
     failure: { statDeltas: { social: -1 }, counterDeltas: { socialEscapes: 1 } },
-    success: { statDeltas: { social: 1 } },
-    criticalSuccess: { statDeltas: { social: 3, curiosity: 1 }, tags: ['aviation'], highlight: true },
+    success: { statDeltas: { social: 1 }, tags: ['volunteering', 'foodCulture'] },
+    criticalSuccess: { statDeltas: { social: 3, curiosity: 1 }, tags: ['aviation', 'volunteering', 'foodCulture'], highlight: true },
   },
   mentor_1on1: {
     criticalFailure: { statDeltas: { independence: -3, ambition: -2 }, highlight: true },
     failure: { statDeltas: { ambition: -1 } },
-    success: { statDeltas: { independence: 1 } },
-    criticalSuccess: { statDeltas: { independence: 2, ambition: 2, chaos: -1 }, highlight: true },
+    success: { statDeltas: { independence: 1 }, tags: ['fitness'] },
+    criticalSuccess: { statDeltas: { independence: 2, ambition: 2, chaos: -1 }, tags: ['fitness'], highlight: true },
   },
   demo: {
     criticalFailure: { statDeltas: { social: -4, ambition: -2 }, counterDeltas: { demosGiven: 1 }, highlight: true },
     failure: { statDeltas: { social: -1 }, counterDeltas: { demosGiven: 1 } },
-    success: { counterDeltas: { demosGiven: 1 } },
-    criticalSuccess: { statDeltas: { social: 3, ambition: 2 }, counterDeltas: { demosGiven: 1 }, highlight: true },
+    success: { counterDeltas: { demosGiven: 1 }, tags: ['photography'] },
+    criticalSuccess: { statDeltas: { social: 3, ambition: 2 }, counterDeltas: { demosGiven: 1 }, tags: ['photography'], highlight: true },
   },
   production_incident: {
     criticalFailure: { statDeltas: { technical: -5, independence: -3, chaos: 5 }, counterDeltas: { incidentsObserved: 1 }, highlight: true },
@@ -131,14 +131,14 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   touch_kubernetes: {
     criticalFailure: { statDeltas: { technical: -5, chaos: 6 }, counterDeltas: { scopeCreep: 2 }, highlight: true },
     failure: { statDeltas: { technical: -2, chaos: 2 }, counterDeltas: { scopeCreep: 1 } },
-    success: { statDeltas: { technical: 1 } },
-    criticalSuccess: { statDeltas: { technical: 3, curiosity: 2, chaos: 1 }, highlight: true },
+    success: { statDeltas: { technical: 1 }, tags: ['robotics'] },
+    criticalSuccess: { statDeltas: { technical: 3, curiosity: 2, chaos: 1 }, tags: ['robotics'], highlight: true },
   },
   friday_project: {
     criticalFailure: { statDeltas: { creativity: -4, chaos: 5 }, counterDeltas: { sideProjects: 1, scopeCreep: 2 }, highlight: true },
     failure: { statDeltas: { ambition: -1 }, counterDeltas: { sideProjects: 1 } },
-    success: { statDeltas: { creativity: 1 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation'] },
-    criticalSuccess: { statDeltas: { creativity: 3, ambition: 2 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation'], highlight: true },
+    success: { statDeltas: { creativity: 1 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation', 'gaming', 'music', 'robotics'] },
+    criticalSuccess: { statDeltas: { creativity: 3, ambition: 2 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation', 'gaming', 'music', 'robotics'], highlight: true },
   },
 }
 
@@ -165,6 +165,14 @@ export const traits: Trait[] = [
   { id: 'startup_dreamer', nameKey: 'trait.startup_dreamer.name', descriptionKey: 'trait.startup_dreamer.description', priority: 40 },
   { id: 'kubernetes_believer', nameKey: 'trait.kubernetes_believer.name', descriptionKey: 'trait.kubernetes_believer.description', priority: 40 },
   { id: 'aviation_nerd', nameKey: 'trait.aviation_nerd.name', descriptionKey: 'trait.aviation_nerd.description', priority: 50 },
+  { id: 'game_modder', nameKey: 'trait.game_modder.name', descriptionKey: 'trait.game_modder.description', priority: 45 },
+  { id: 'robot_builder', nameKey: 'trait.robot_builder.name', descriptionKey: 'trait.robot_builder.description', priority: 45 },
+  { id: 'music_producer', nameKey: 'trait.music_producer.name', descriptionKey: 'trait.music_producer.description', priority: 45 },
+  { id: 'fitness_enthusiast', nameKey: 'trait.fitness_enthusiast.name', descriptionKey: 'trait.fitness_enthusiast.description', priority: 45 },
+  { id: 'photo_hunter', nameKey: 'trait.photo_hunter.name', descriptionKey: 'trait.photo_hunter.description', priority: 45 },
+  { id: 'finance_watcher', nameKey: 'trait.finance_watcher.name', descriptionKey: 'trait.finance_watcher.description', priority: 45 },
+  { id: 'volunteer_organizer', nameKey: 'trait.volunteer_organizer.name', descriptionKey: 'trait.volunteer_organizer.description', priority: 45 },
+  { id: 'foodie_scout', nameKey: 'trait.foodie_scout.name', descriptionKey: 'trait.foodie_scout.description', priority: 45 },
   { id: 'chaotic_good', nameKey: 'trait.chaotic_good.name', descriptionKey: 'trait.chaotic_good.description', priority: 50 },
 ]
 
@@ -192,6 +200,13 @@ function careerEnding(
 export const endings: Ending[] = [
   careerEnding('no_return_offer', 'common', 100, { statWeights: {} }),
   careerEnding('internship_extended', 'common', 90, { statWeights: {}, evidenceWeights: { resilience: 8, ownership: 5 } }),
+  careerEnding('left_for_better_offer', 'rare', 89, {
+    statWeights: { ambition: 2, social: 1, creativity: 1 },
+    minimumEvidence: { ownership: 6 },
+    activityWeights: { friday_project: 8, demo: 8, mentor_1on1: 4 },
+    counterWeights: { sideProjects: 8, demosGiven: 6 },
+    evidenceWeights: { ownership: 12, productSense: 10, community: 7 },
+  }, 'left_for_better_offer', 'founder'),
   careerEnding('software', 'common', 1, { statWeights: { technical: 3, independence: 2 }, minimumActivities: { fix_bug: 4, build_feature: 4, write_tests: 4 }, activityWeights: { fix_bug: 5, build_feature: 5, write_tests: 5 }, counterWeights: { bugsFixed: 5 }, evidenceWeights: { engineering: 10, reliability: 8, ownership: 6 } }),
   careerEnding('frontend', 'common', 2, { statWeights: { creativity: 3, technical: 2, social: 1 }, minimumEvidence: { engineering: 9, productSense: 7 }, minimumActivities: { build_feature: 11, demo: 5 }, activityWeights: { build_feature: 12, demo: 8 }, evidenceWeights: { productSense: 14, engineering: 9, customerFacing: 4 } }),
   careerEnding('backend', 'common', 3, { statWeights: { technical: 3, independence: 2 }, minimumEvidence: { engineering: 11, reliability: 6 }, minimumActivities: { fix_bug: 11, production_incident: 3 }, activityWeights: { fix_bug: 11, production_incident: 7, touch_kubernetes: 4 }, evidenceWeights: { engineering: 13, reliability: 9, incidentResponse: 5 } }),
@@ -220,6 +235,11 @@ export const endings: Ending[] = [
   careerEnding('independent_developer', 'rare', 25, { statWeights: { technical: 2, creativity: 3, independence: 2 }, minimumEvidence: { engineering: 9, ownership: 7 }, minimumActivities: { friday_project: 15, build_feature: 6 }, activityWeights: { friday_project: 15, build_feature: 8, fix_bug: 4 }, evidenceWeights: { engineering: 12, ownership: 12, community: 7 } }),
   careerEnding('staff', 'rare', 26, { requiredTraits: ['architecture_brain'], statWeights: { technical: 3, independence: 3 }, minimumEvidence: { leadership: 7, ownership: 7 }, traitBonuses: { architecture_brain: 520, doc_goblin: 100, test_guardian: 100 }, evidenceWeights: { leadership: 16, ownership: 11, engineering: 6 } }),
   careerEnding('flight', 'epic', 27, { requiredTraits: ['aviation_nerd'], statWeights: { curiosity: 2, independence: 2, social: 1 }, minimumEvidence: { aviation: 3 }, traitBonuses: { aviation_nerd: 1200 }, evidenceWeights: { aviation: 30 } }),
+  careerEnding('indie_game_creator', 'epic', 28, { requiredTraits: ['game_modder'], statWeights: { creativity: 3, technical: 2 }, minimumEvidence: { gaming: 3 }, minimumActivities: { friday_project: 8 }, traitBonuses: { game_modder: 1150 }, activityWeights: { friday_project: 14, build_feature: 8 }, evidenceWeights: { gaming: 28, community: 9, productSense: 6 } }, 'indie_game_creator', 'open_source'),
+  careerEnding('robotics_engineer', 'epic', 29, { requiredTraits: ['robot_builder'], statWeights: { technical: 3, curiosity: 2 }, minimumEvidence: { robotics: 3 }, minimumActivities: { touch_kubernetes: 7 }, traitBonuses: { robot_builder: 1150 }, activityWeights: { touch_kubernetes: 12, write_tests: 8, build_feature: 6 }, evidenceWeights: { robotics: 30, engineering: 9, reliability: 6 } }, 'robotics_engineer', 'kubernetes'),
+  careerEnding('music_tech_creator', 'epic', 30, { requiredTraits: ['music_producer'], statWeights: { creativity: 3, social: 2 }, minimumEvidence: { music: 3 }, minimumActivities: { tech_talk: 6, friday_project: 6 }, traitBonuses: { music_producer: 1120 }, activityWeights: { tech_talk: 10, friday_project: 10, demo: 6 }, evidenceWeights: { music: 30, communication: 8, community: 6 } }, 'music_tech_creator', 'developer_relations'),
+  careerEnding('sports_coach', 'rare', 31, { requiredTraits: ['fitness_enthusiast'], statWeights: { independence: 2, social: 2, ambition: 1 }, minimumEvidence: { fitness: 3 }, minimumActivities: { mentor_1on1: 6 }, traitBonuses: { fitness_enthusiast: 1050 }, activityWeights: { mentor_1on1: 12, pair_programming: 7, team_lunch: 6 }, evidenceWeights: { fitness: 28, leadership: 10, resilience: 8 } }, 'sports_coach', 'programming_instructor'),
+  careerEnding('community_volunteer', 'rare', 32, { requiredTraits: ['volunteer_organizer'], statWeights: { social: 3, independence: 1 }, minimumEvidence: { volunteering: 3 }, minimumActivities: { team_lunch: 7, mentor_1on1: 5 }, traitBonuses: { volunteer_organizer: 1100 }, activityWeights: { team_lunch: 12, mentor_1on1: 9, tech_talk: 5 }, evidenceWeights: { volunteering: 30, communication: 10, leadership: 8 } }, 'community_volunteer', 'program_manager'),
 ]
 
 export const profileNameKeys = Array.from({ length: 24 }, (_, index) => `name.${index + 1}`)

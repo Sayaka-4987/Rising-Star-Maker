@@ -171,8 +171,8 @@ describe('game rules', () => {
   })
 
   it('keeps every career ending signature satisfiable and able to win its focused state', () => {
-    const careerEndings = endings.filter(ending => !['no_return_offer', 'internship_extended'].includes(ending.id))
-    expect(careerEndings).toHaveLength(28)
+    const careerEndings = endings.filter(ending => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(ending.id))
+    expect(careerEndings).toHaveLength(33)
     for (const ending of careerEndings) {
       const game = gameForEnding(ending)
       expect(Number.isFinite(scoreEnding(game, ending)), ending.id).toBe(true)
@@ -241,11 +241,14 @@ describe('game rules', () => {
     }
     const noOfferRate = (counts.get('no_return_offer') ?? 0) / 10000
     const extensionRate = (counts.get('internship_extended') ?? 0) / 10000
-    const largestPositiveShare = Math.max(...[...counts.entries()].filter(([id]) => !['no_return_offer', 'internship_extended'].includes(id)).map(([, count]) => count / 10000))
+    const earlyLeaveRate = (counts.get('left_for_better_offer') ?? 0) / 10000
+    const largestPositiveShare = Math.max(...[...counts.entries()].filter(([id]) => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(id)).map(([, count]) => count / 10000))
     expect(counts.size).toBeGreaterThanOrEqual(20)
     expect(noOfferRate).toBeGreaterThan(0.02)
     expect(noOfferRate).toBeLessThan(0.12)
     expect(extensionRate).toBeLessThan(0.15)
+    expect(earlyLeaveRate).toBeGreaterThan(0.05)
+    expect(earlyLeaveRate).toBeLessThan(0.15)
     expect(largestPositiveShare).toBeLessThan(0.33)
   }, 30000)
 

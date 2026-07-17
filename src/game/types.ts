@@ -6,7 +6,28 @@ export const counterIds = ['bugsFixed', 'docsRead', 'questionsAsked', 'demosGive
 export type CounterId = (typeof counterIds)[number]
 export type Counters = Record<CounterId, number>
 
-export const evidenceIds = ['engineering', 'reliability', 'research', 'productSense', 'customerFacing', 'communication', 'community', 'ownership', 'resilience', 'incidentResponse', 'leadership', 'aviation'] as const
+export const evidenceIds = [
+  'engineering',
+  'reliability',
+  'research',
+  'productSense',
+  'customerFacing',
+  'communication',
+  'community',
+  'ownership',
+  'resilience',
+  'incidentResponse',
+  'leadership',
+  'aviation',
+  'gaming',
+  'robotics',
+  'music',
+  'fitness',
+  'photography',
+  'finance',
+  'volunteering',
+  'foodCulture',
+] as const
 export type EvidenceId = (typeof evidenceIds)[number]
 export type EvidenceTotals = Record<EvidenceId, number>
 

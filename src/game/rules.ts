@@ -150,7 +150,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
     applyDeltas(working.stats, event.statDeltas)
     applyDeltas(working.counters, event.counterDeltas)
 
-    const evidenceDeltas = evidenceForResult(working, activity, outcome, situation, situationHint, weeklyEvidence)
+    const evidenceDeltas = evidenceForResult(working, activity, outcome, event.tags ?? [], situation, situationHint, weeklyEvidence)
     applyEvidence(working.evidence.totals, weeklyEvidence, evidenceDeltas)
     applyRisks(working.evidence.risks, weeklyRisks, riskDeltas(activityId, outcome, event.counterDeltas?.scopeCreep ?? 0))
 
@@ -233,7 +233,15 @@ export function chooseEnding(game: GameState): Ending {
     && legacyCount(lateBurden) < 10
     && legacyCount(recentPositiveEvidence(game)) >= 12
   ) return internshipExtended
-  const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
+
+  const betterOfferEnding = endings.find(ending => ending.id === 'left_for_better_offer')
+  if (
+    betterOfferEnding
+    && betterOfferSignal(game)
+    && deterministicChance(game, 'left_for_better_offer') < 0.18
+  ) return betterOfferEnding
+
+  const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
   if (eligible.length === 0) return endings.find(ending => ending.id === 'software') as Ending
   return rankEndings(game, eligible)[0] as Ending
 }
@@ -330,6 +338,7 @@ function evidenceForResult(
   game: GameState,
   activity: Activity,
   outcome: OutcomeId,
+  eventTags: string[],
   situation: WeeklySituation | undefined,
   situationHint: SituationHint | undefined,
   weeklyEvidence: Partial<EvidenceTotals>,
@@ -347,6 +356,10 @@ function evidenceForResult(
   const positive = outcome === 'success' || outcome === 'criticalSuccess'
   if (positive && situationHint === 'related') situation?.evidenceTags.forEach(id => add(id, 1))
   if (outcome === 'criticalSuccess' && situationHint === 'opportunity') situation?.evidenceTags.forEach(id => add(id, 1))
+  if (positive) {
+    const hobbyTags = [...new Set(eventTags.filter((tag): tag is EvidenceId => evidenceIds.includes(tag as EvidenceId)))]
+    for (const hobbyTag of hobbyTags) add(hobbyTag, outcome === 'criticalSuccess' ? 2 : 1)
+  }
   const recovered = positive && game.eventHistory.some(event => event.activityId === activity.id && event.week >= game.week - 4 && (event.outcome === 'failure' || event.outcome === 'criticalFailure'))
   if (recovered) add('resilience', 1)
   return Object.fromEntries(Object.entries(deltas).filter(([, value]) => (value ?? 0) > 0)) as Partial<EvidenceTotals>
@@ -507,6 +520,20 @@ function adjustedEndingScore(game: GameState, ending: Ending): number {
   return scoreEnding(game, ending) + ((hash >>> 0) % 501) / 100
 }
 
+function betterOfferSignal(game: GameState): boolean {
+  const sideProjects = legacyCount(game.counters.sideProjects)
+  const demos = legacyCount(game.counters.demosGiven)
+  const isOpportunityDriven = ['startup_dreamer', 'open_source_addict', 'game_modder'].some(trait => game.traits.includes(trait))
+  return game.stats.ambition >= 66 && (sideProjects >= 6 || demos >= 6 || isOpportunityDriven)
+}
+
+function deterministicChance(game: GameState, salt: string): number {
+  let hash = game.seed ^ 0x7f4a7c15
+  for (const character of salt) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
+  hash = Math.imul(hash ^ game.eventHistory.length, 2246822519)
+  return ((hash >>> 0) % 1000) / 1000
+}
+
 function progressTraitsAndUnlock(game: GameState): string | undefined {
   const progress = { ...game.traitProgress }
   for (const trait of traits) {
@@ -590,6 +617,10 @@ function traitCondition(id: string, game: GameState): boolean {
   const socialCount = count('team_lunch') + count('mentor_1on1') + count('demo')
   const meetingCount = count('tech_talk') + count('team_lunch') + count('demo')
   const aviationEvents = game.eventHistory.filter(event => event.tags.includes('aviation'))
+  const hobbyTriggered = (tag: string, minHits = 3, minActivities = 2): boolean => {
+    const hits = game.eventHistory.filter(event => event.tags.includes(tag))
+    return hits.length >= minHits && new Set(hits.map(event => event.activityId)).size >= minActivities
+  }
   switch (id) {
     case 'curious': return game.stats.curiosity >= 65
     case 'bug_hunter': return count('fix_bug') >= 5 && game.stats.technical >= 60
@@ -602,6 +633,14 @@ function traitCondition(id: string, game: GameState): boolean {
     case 'startup_dreamer': return count('friday_project') >= 6 && game.stats.ambition >= 65 && game.stats.chaos >= 55
     case 'kubernetes_believer': return count('touch_kubernetes') >= 5 && game.stats.curiosity >= 65
     case 'aviation_nerd': return aviationEvents.length >= 3 && new Set(aviationEvents.map(event => event.activityId)).size >= 2
+    case 'game_modder': return hobbyTriggered('gaming')
+    case 'robot_builder': return hobbyTriggered('robotics')
+    case 'music_producer': return hobbyTriggered('music')
+    case 'fitness_enthusiast': return hobbyTriggered('fitness', 2, 1)
+    case 'photo_hunter': return hobbyTriggered('photography')
+    case 'finance_watcher': return hobbyTriggered('finance', 2, 1)
+    case 'volunteer_organizer': return hobbyTriggered('volunteering', 2, 1)
+    case 'foodie_scout': return hobbyTriggered('foodCulture', 2, 1)
     case 'chaotic_good': return game.stats.chaos >= 75 && game.traits.length >= 4
     default: return false
   }
