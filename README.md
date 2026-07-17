@@ -1,6 +1,6 @@
 # Rising Star Maker / 职场新星梦工厂
 
-[▶ Play](https://sayaka-4987.github.io/Rising-Star-Maker/)
+[▶ Play (GitHub Pages website)](https://sayaka-4987.github.io/Rising-Star-Maker/)
 
 ## About
 
