@@ -172,7 +172,7 @@ describe('game rules', () => {
 
   it('keeps every career ending signature satisfiable and able to win its focused state', () => {
     const careerEndings = endings.filter(ending => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(ending.id))
-    expect(careerEndings).toHaveLength(34)
+    expect(careerEndings).toHaveLength(37)
     for (const ending of careerEndings) {
       const game = gameForEnding(ending)
       expect(Number.isFinite(scoreEnding(game, ending)), ending.id).toBe(true)
