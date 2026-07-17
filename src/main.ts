@@ -125,8 +125,8 @@ function renderReveal(state: GameState): string {
 
 function renderPlanning(state: GameState): string {
   const categories = ['work', 'learning', 'social', 'danger'] as const
-  const latest = state.eventHistory[state.eventHistory.length - 1]?.text ?? formatForIntern(state.profile.observationKey, state)
   const situation = situationById(state.currentSituationId)
+  const logEntries = state.eventHistory.slice(-12).reverse().map(item => `<li>${e(localizedEventText(item, state))}</li>`).join('') || `<li>${e(t('label.none'))}</li>`
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="game-grid">
@@ -140,12 +140,18 @@ function renderPlanning(state: GameState): string {
         <p class="muted">${e(t(`gender.${state.profile.gender}`))} · ${e(localizedProfilePronoun(state.profile))}</p>
         <h3>${e(t('label.traits'))}</h3>
         ${traitChips(state)}
-        <section class="log-inline">
+        <section class="log-inline log-inline-desktop">
           <h3>${e(t('label.log'))}</h3>
           <ol class="log-list compact">
-            ${state.eventHistory.slice(-12).reverse().map(item => `<li>${e(localizedEventText(item, state))}</li>`).join('') || `<li>${e(t('label.none'))}</li>`}
+            ${logEntries}
           </ol>
         </section>
+        <details class="log-inline log-inline-mobile">
+          <summary>${e(t('label.log'))}</summary>
+          <ol class="log-list compact">
+            ${logEntries}
+          </ol>
+        </details>
       </aside>
       <section class="activity-panel panel" aria-labelledby="activities-heading">
         ${situation ? `<article class="situation-card situation-${e(situation.kind)}">
