@@ -319,7 +319,16 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
   overflow: hidden;
 }
 .situation-headline span { flex: 0 0 auto; }
-.situation-headline strong { flex: 0 0 auto; color: var(--green); font-size: 12px; }
+.situation-headline strong {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 1px 7px;
+  border: 1px solid currentColor;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
 .situation-headline h2 {
   flex: 1 1 auto;
   min-width: 0;
@@ -691,6 +700,8 @@ button.schedule-slot { cursor: pointer; }
   .weekly-results { padding: 14px 10px; }
   .results-heading { margin-bottom: 16px; gap: 12px; }
   .feedback-situation { padding: 12px 14px; }
+  .situation-headline { gap: 6px; }
+  .situation-headline strong { padding: 1px 6px; font-size: 10px; }
   .result-card { padding: 16px; }
   .paper { padding: 22px 16px; }
   .report-fold > summary {
