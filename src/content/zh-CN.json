@@ -138,7 +138,7 @@
   "activity.read_docs.name": "阅读文档",
   "activity.read_docs.description": "集中阅读项目文档，把不清楚的点整理成问题清单。",
   "activity.pair_programming.name": "结伴编程",
-  "activity.pair_programming.description": "让实习生和另一个工程师结对完成任务，边做边讲解思路。",
+  "activity.pair_programming.description": "让实习生和另一个工程师搭档完成任务，边做边讲解思路。",
   "activity.tech_talk.name": "技术分享",
   "activity.tech_talk.description": "参加一次内部分享会，并在会后提问交流。",
   "activity.team_lunch.name": "团队午餐",
