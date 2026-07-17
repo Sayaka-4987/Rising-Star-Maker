@@ -334,7 +334,7 @@
   "ending.kubernetes.summary.a": "我不赞成{name}把所有问题都归到 k8s 集群，但不得不承认，{pronoun}最近几次判断是对的。",
   "ending.kubernetes.summary.b": "团队开始把复杂部署问题交给{name}，同时也要求{pronoun}每次操作前找人复核。",
   "ending.internship_extended.name": "延长实习",
-  "ending.internship_extended.description": "{name}前半段有过不少返工，后来慢慢进步了一些。我还不能建议直接转正，但愿意再给{pronoun}一段时间。",
+  "ending.internship_extended.description": "{name}前半段有过不少返工，后来慢慢进步了一些。我还不能建议直接转正，但愿意再给{pronoun} 3 个月时间。",
   "ending.internship_extended.summary.a": "我们把仍需证明的能力和指标写了下来，也约好了到时怎样判断。这个决定不会无限往后拖。",
   "ending.internship_extended.summary.b": "{name}知道这是最后一次机会。{pronoun}最近的进步值得我们再观察一段时间。",
   "ending.frontend.name": "前端工程师",
