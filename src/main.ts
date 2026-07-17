@@ -77,8 +77,8 @@ function renderTitle(): string {
         <strong>RISING STAR MAKER</strong>
         <span>INTERN OBSERVATION v0.1</span>
       </div>
-      <p class="eyebrow">${e(t('app.subtitle'))}</p>
       <h1 id="game-title">${e(t('app.title'))}</h1>
+      <p class="eyebrow">${e(t('app.subtitle'))}</p>
       <p class="tagline">${e(t('app.tagline'))}</p>
       <p class="intro">${e(t('app.intro'))}</p>
       <div class="title-actions">
