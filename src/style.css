@@ -145,10 +145,10 @@ button:focus-visible {
   padding-top: clamp(48px, 7vw, 78px);
 }
 
-.title-locale-switch {
-  position: absolute;
-  top: 14px;
-  right: 14px;
+.title-locale-inline {
+  display: flex;
+  justify-content: center;
+  margin: 22px 0 0;
 }
 
 .logo {
@@ -396,11 +396,30 @@ button.schedule-slot { cursor: pointer; }
 
 @media (max-width: 780px) {
   .app-shell { padding: 8px; gap: 12px; }
-  .topbar { min-height: 64px; padding: 10px 12px; }
-  .topbar { grid-template-columns: 1fr auto; }
-  .topbar-center { grid-row: 2; grid-column: 1 / -1; justify-self: start; margin-top: 8px; }
-  .topbar-actions { grid-column: 2; align-items: center; }
-  .title-locale-switch { top: 10px; right: 10px; }
+  .topbar {
+    min-height: 64px;
+    padding: 10px 12px;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .topbar-left,
+  .topbar-center,
+  .topbar-actions {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .topbar-center {
+    grid-row: 2;
+    margin-top: 0;
+  }
+  .topbar-actions {
+    grid-row: 3;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+  }
+  .topbar-actions > .button[data-action="home"] { display: none; }
+  .topbar-actions .locale-switch { width: 100%; }
   .game-grid { grid-template-columns: 1fr; }
   .intern-panel { position: static; }
   .intern-panel, .activity-panel, .log-panel { padding: 14px; }
@@ -433,6 +452,7 @@ button.schedule-slot { cursor: pointer; }
   .dex-grid { grid-template-columns: 1fr; }
   .title-screen, .center-screen, .result-screen, .ending-screen { padding: 20px 14px; }
   .title-screen { padding-top: 52px; }
+  .title-locale-inline { margin-top: 18px; }
   .title-actions { width: 100%; }
   .button { min-height: 44px; padding: 11px 16px; }
   .button.small { min-height: 38px; padding: 6px 10px; }

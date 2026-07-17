@@ -72,7 +72,6 @@ function render(): void {
 function renderTitle(): string {
   return shell(`
     <main class="title-screen panel" aria-labelledby="game-title">
-      <div class="title-locale-switch">${localeSwitcher()}</div>
       <div class="logo" aria-hidden="true">
         <strong>RISING STAR MAKER</strong>
         <span>INTERN OBSERVATION v0.1</span>
@@ -81,6 +80,7 @@ function renderTitle(): string {
       <p class="eyebrow">${e(t('app.subtitle'))}</p>
       <p class="tagline">${e(t('app.tagline'))}</p>
       <p class="intro">${e(t('app.intro'))}</p>
+      <div class="title-locale-inline">${localeSwitcher()}</div>
       <div class="title-actions">
         ${game ? button('continue', t('button.continue'), 'primary') : ''}
         ${button('new', t('button.new'), game ? '' : 'primary')}
