@@ -131,7 +131,12 @@ function renderPlanning(state: GameState): string {
         <p class="muted">${e(t(`gender.${state.profile.gender}`))} · ${e(state.profile.pronoun)}</p>
         <h3>${e(t('label.traits'))}</h3>
         ${traitChips(state)}
-        <p class="latest-observation">${e(latest)}</p>
+        <section class="log-inline">
+          <h3>${e(t('label.log'))}</h3>
+          <ol class="log-list compact">
+            ${state.eventHistory.slice(-12).reverse().map(item => `<li>${e(item.text)}</li>`).join('') || `<li>${e(t('label.none'))}</li>`}
+          </ol>
+        </section>
       </aside>
       <section class="activity-panel panel" aria-labelledby="activities-heading">
         ${situation ? `<article class="situation-card situation-${e(situation.kind)}">
@@ -158,12 +163,6 @@ function renderPlanning(state: GameState): string {
           ${button('start-week', t('button.startWeek'), 'primary', state.selectedActivityIds.length !== 3)}
         </div>
       </section>
-      <aside class="log-panel panel">
-        <h2>${e(t('label.log'))}</h2>
-        <ol class="log-list">
-          ${state.eventHistory.slice(-12).reverse().map(item => `<li>${e(item.text)}</li>`).join('') || `<li>${e(t('label.none'))}</li>`}
-        </ol>
-      </aside>
     </main>
   `)
 }
