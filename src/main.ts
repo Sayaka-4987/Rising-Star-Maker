@@ -155,6 +155,12 @@ function renderPlanning(state: GameState): string {
           <div><p class="eyebrow">WEEKLY PLAN</p><h2 id="activities-heading">${e(t('label.schedule'))}</h2></div>
           <span>${state.selectedActivityIds.length} / 3</span>
         </div>
+        <div class="schedule-bar">
+          <div class="schedule-slots">
+            ${[0, 1, 2].map(index => scheduleSlot(state.selectedActivityIds[index], index)).join('')}
+          </div>
+          ${button('start-week', t('button.startWeek'), 'primary', state.selectedActivityIds.length !== 3)}
+        </div>
         ${categories.map(category => `
           <section class="activity-group">
             <h3>${e(t(`category.${category}`))}</h3>
@@ -163,12 +169,6 @@ function renderPlanning(state: GameState): string {
             </div>
           </section>
         `).join('')}
-        <div class="schedule-bar">
-          <div class="schedule-slots">
-            ${[0, 1, 2].map(index => scheduleSlot(state.selectedActivityIds[index], index)).join('')}
-          </div>
-          ${button('start-week', t('button.startWeek'), 'primary', state.selectedActivityIds.length !== 3)}
-        </div>
       </section>
     </main>
   `)
