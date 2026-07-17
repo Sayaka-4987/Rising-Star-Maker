@@ -22,8 +22,8 @@ export function validateContent(): string[] {
 
   if (activities.length !== 12) errors.push(`Expected 12 activities, received ${activities.length}`)
   if (events.length !== 48) errors.push(`Expected 48 events, received ${events.length}`)
-  if (traits.length !== 20) errors.push(`Expected 20 traits, received ${traits.length}`)
-  if (endings.length !== 36) errors.push(`Expected 36 endings, received ${endings.length}`)
+  if (traits.length !== 21) errors.push(`Expected 21 traits, received ${traits.length}`)
+  if (endings.length !== 37) errors.push(`Expected 37 endings, received ${endings.length}`)
   if (weeklySituations.length !== 25) errors.push(`Expected 25 weekly situations, received ${weeklySituations.length}`)
 
   for (const activity of activities) {

@@ -22,6 +22,7 @@ export const evidenceIds = [
   'gaming',
   'robotics',
   'music',
+  'anime',
   'fitness',
   'photography',
   'finance',

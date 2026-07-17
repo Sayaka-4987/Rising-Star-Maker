@@ -636,6 +636,7 @@ function traitCondition(id: string, game: GameState): boolean {
     case 'game_modder': return hobbyTriggered('gaming')
     case 'robot_builder': return hobbyTriggered('robotics')
     case 'music_producer': return hobbyTriggered('music')
+    case 'anime_artist': return hobbyTriggered('anime')
     case 'fitness_enthusiast': return hobbyTriggered('fitness', 2, 1)
     case 'photo_hunter': return hobbyTriggered('photography')
     case 'finance_watcher': return hobbyTriggered('finance', 2, 1)

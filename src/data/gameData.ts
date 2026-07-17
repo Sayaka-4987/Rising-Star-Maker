@@ -44,7 +44,7 @@ export const weeklySituations: WeeklySituation[] = [
   situation('tech_debt_week', 'common', ['fix_bug', 'write_tests'], ['build_feature'], ['read_docs'], ['engineering', 'reliability']),
   situation('quiet_week', 'common', ['read_docs', 'friday_project'], [], ['mentor_1on1'], ['ownership']),
   situation('customer_visit', 'opportunity', ['demo'], ['friday_project'], ['build_feature', 'team_lunch'], ['customerFacing']),
-  situation('internal_tech_fair', 'opportunity', ['tech_talk', 'demo'], [], ['friday_project'], ['communication', 'community', 'gaming', 'music']),
+  situation('internal_tech_fair', 'opportunity', ['tech_talk', 'demo'], [], ['friday_project'], ['communication', 'community', 'gaming', 'music', 'anime']),
   situation('open_source_issue', 'opportunity', ['friday_project'], [], ['read_docs'], ['community', 'gaming']),
   situation('cross_team_invite', 'opportunity', ['pair_programming', 'read_docs'], [], ['mentor_1on1'], ['leadership', 'communication']),
   situation('research_seminar', 'opportunity', ['tech_talk', 'read_docs'], [], ['write_tests'], ['research']),
@@ -53,7 +53,7 @@ export const weeklySituations: WeeklySituation[] = [
   situation('mentor_busy', 'trouble', ['read_docs', 'fix_bug'], ['mentor_1on1'], ['friday_project'], ['ownership']),
   situation('incident_wave', 'trouble', ['production_incident', 'fix_bug'], ['friday_project'], ['write_tests'], ['incidentResponse']),
   situation('team_disagreement', 'trouble', ['mentor_1on1', 'team_lunch'], ['pair_programming'], ['tech_talk'], ['leadership', 'communication']),
-  situation('project_spotlight', 'rare', ['friday_project', 'demo'], [], ['tech_talk'], ['community', 'customerFacing'], 5),
+  situation('project_spotlight', 'rare', ['friday_project', 'demo'], [], ['tech_talk'], ['community', 'customerFacing', 'anime'], 5),
   situation('flight_club_day', 'rare', ['team_lunch', 'friday_project'], [], ['read_docs'], ['aviation', 'photography'], 5),
   situation('customer_escalation', 'rare', ['demo', 'fix_bug', 'production_incident'], [], ['team_lunch'], ['customerFacing', 'incidentResponse'], 5),
   situation('research_collaboration', 'rare', ['read_docs', 'tech_talk'], [], ['write_tests'], ['research'], 5),
@@ -77,8 +77,8 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   build_feature: {
     criticalFailure: { statDeltas: { technical: -3, chaos: 3 }, counterDeltas: { scopeCreep: 2 }, highlight: true },
     failure: { statDeltas: { creativity: -1 }, counterDeltas: { scopeCreep: 1 } },
-    success: { statDeltas: { creativity: 1 }, tags: ['gaming'] },
-    criticalSuccess: { statDeltas: { creativity: 3, ambition: 1 }, tags: ['aviation', 'gaming'], highlight: true },
+    success: { statDeltas: { creativity: 1 }, tags: ['gaming', 'anime'] },
+    criticalSuccess: { statDeltas: { creativity: 3, ambition: 1 }, tags: ['aviation', 'gaming', 'anime'], highlight: true },
   },
   write_tests: {
     criticalFailure: { statDeltas: { technical: -3, chaos: 3 }, highlight: true },
@@ -101,8 +101,8 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   tech_talk: {
     criticalFailure: { statDeltas: { social: -3, curiosity: -2 }, highlight: true },
     failure: { statDeltas: { social: -1 } },
-    success: { counterDeltas: { questionsAsked: 1 }, tags: ['music'] },
-    criticalSuccess: { statDeltas: { curiosity: 2, social: 2 }, counterDeltas: { questionsAsked: 2 }, tags: ['music'], highlight: true },
+    success: { counterDeltas: { questionsAsked: 1 }, tags: ['music', 'anime'] },
+    criticalSuccess: { statDeltas: { curiosity: 2, social: 2 }, counterDeltas: { questionsAsked: 2 }, tags: ['music', 'anime'], highlight: true },
   },
   team_lunch: {
     criticalFailure: { statDeltas: { social: -4, chaos: 2 }, counterDeltas: { socialEscapes: 1 }, highlight: true },
@@ -119,8 +119,8 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   demo: {
     criticalFailure: { statDeltas: { social: -4, ambition: -2 }, counterDeltas: { demosGiven: 1 }, highlight: true },
     failure: { statDeltas: { social: -1 }, counterDeltas: { demosGiven: 1 } },
-    success: { counterDeltas: { demosGiven: 1 }, tags: ['photography'] },
-    criticalSuccess: { statDeltas: { social: 3, ambition: 2 }, counterDeltas: { demosGiven: 1 }, tags: ['photography'], highlight: true },
+    success: { counterDeltas: { demosGiven: 1 }, tags: ['photography', 'anime'] },
+    criticalSuccess: { statDeltas: { social: 3, ambition: 2 }, counterDeltas: { demosGiven: 1 }, tags: ['photography', 'anime'], highlight: true },
   },
   production_incident: {
     criticalFailure: { statDeltas: { technical: -5, independence: -3, chaos: 5 }, counterDeltas: { incidentsObserved: 1 }, highlight: true },
@@ -137,8 +137,8 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   friday_project: {
     criticalFailure: { statDeltas: { creativity: -4, chaos: 5 }, counterDeltas: { sideProjects: 1, scopeCreep: 2 }, highlight: true },
     failure: { statDeltas: { ambition: -1 }, counterDeltas: { sideProjects: 1 } },
-    success: { statDeltas: { creativity: 1 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation', 'gaming', 'music', 'robotics'] },
-    criticalSuccess: { statDeltas: { creativity: 3, ambition: 2 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation', 'gaming', 'music', 'robotics'], highlight: true },
+    success: { statDeltas: { creativity: 1 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation', 'gaming', 'music', 'anime', 'robotics'] },
+    criticalSuccess: { statDeltas: { creativity: 3, ambition: 2 }, counterDeltas: { sideProjects: 1 }, tags: ['aviation', 'gaming', 'music', 'anime', 'robotics'], highlight: true },
   },
 }
 
@@ -168,6 +168,7 @@ export const traits: Trait[] = [
   { id: 'game_modder', nameKey: 'trait.game_modder.name', descriptionKey: 'trait.game_modder.description', priority: 45 },
   { id: 'robot_builder', nameKey: 'trait.robot_builder.name', descriptionKey: 'trait.robot_builder.description', priority: 45 },
   { id: 'music_producer', nameKey: 'trait.music_producer.name', descriptionKey: 'trait.music_producer.description', priority: 45 },
+  { id: 'anime_artist', nameKey: 'trait.anime_artist.name', descriptionKey: 'trait.anime_artist.description', priority: 45 },
   { id: 'fitness_enthusiast', nameKey: 'trait.fitness_enthusiast.name', descriptionKey: 'trait.fitness_enthusiast.description', priority: 45 },
   { id: 'photo_hunter', nameKey: 'trait.photo_hunter.name', descriptionKey: 'trait.photo_hunter.description', priority: 45 },
   { id: 'finance_watcher', nameKey: 'trait.finance_watcher.name', descriptionKey: 'trait.finance_watcher.description', priority: 45 },
@@ -238,6 +239,7 @@ export const endings: Ending[] = [
   careerEnding('indie_game_creator', 'epic', 28, { requiredTraits: ['game_modder'], statWeights: { creativity: 3, technical: 2 }, minimumEvidence: { gaming: 3 }, minimumActivities: { friday_project: 8 }, traitBonuses: { game_modder: 1150 }, activityWeights: { friday_project: 14, build_feature: 8 }, evidenceWeights: { gaming: 28, community: 9, productSense: 6 } }, 'indie_game_creator', 'open_source'),
   careerEnding('robotics_engineer', 'epic', 29, { requiredTraits: ['robot_builder'], statWeights: { technical: 3, curiosity: 2 }, minimumEvidence: { robotics: 3 }, minimumActivities: { touch_kubernetes: 7 }, traitBonuses: { robot_builder: 1150 }, activityWeights: { touch_kubernetes: 12, write_tests: 8, build_feature: 6 }, evidenceWeights: { robotics: 30, engineering: 9, reliability: 6 } }, 'robotics_engineer', 'kubernetes'),
   careerEnding('music_tech_creator', 'epic', 30, { requiredTraits: ['music_producer'], statWeights: { creativity: 3, social: 2 }, minimumEvidence: { music: 3 }, minimumActivities: { tech_talk: 6, friday_project: 6 }, traitBonuses: { music_producer: 1120 }, activityWeights: { tech_talk: 10, friday_project: 10, demo: 6 }, evidenceWeights: { music: 30, communication: 8, community: 6 } }, 'music_tech_creator', 'developer_relations'),
+  careerEnding('illustrator', 'epic', 33, { requiredTraits: ['anime_artist'], statWeights: { creativity: 3, social: 2 }, minimumEvidence: { anime: 3 }, minimumActivities: { friday_project: 7, demo: 5 }, traitBonuses: { anime_artist: 1120 }, activityWeights: { friday_project: 13, demo: 10, tech_talk: 6 }, evidenceWeights: { anime: 32, communication: 9, productSense: 7 } }, 'mihuashi_illustrator', 'developer_relations'),
   careerEnding('sports_coach', 'rare', 31, { requiredTraits: ['fitness_enthusiast'], statWeights: { independence: 2, social: 2, ambition: 1 }, minimumEvidence: { fitness: 3 }, minimumActivities: { mentor_1on1: 6 }, traitBonuses: { fitness_enthusiast: 1050 }, activityWeights: { mentor_1on1: 12, pair_programming: 7, team_lunch: 6 }, evidenceWeights: { fitness: 28, leadership: 10, resilience: 8 } }, 'sports_coach', 'programming_instructor'),
   careerEnding('community_volunteer', 'rare', 32, { requiredTraits: ['volunteer_organizer'], statWeights: { social: 3, independence: 1 }, minimumEvidence: { volunteering: 3 }, minimumActivities: { team_lunch: 7, mentor_1on1: 5 }, traitBonuses: { volunteer_organizer: 1100 }, activityWeights: { team_lunch: 12, mentor_1on1: 9, tech_talk: 5 }, evidenceWeights: { volunteering: 30, communication: 10, leadership: 8 } }, 'community_volunteer', 'program_manager'),
 ]
