@@ -147,7 +147,7 @@ function renderPlanning(state: GameState): string {
           </ol>
         </section>
         <details class="log-inline log-inline-mobile">
-          <summary>${e(t('label.lastRound'))}</summary>
+          <summary>${e(t('label.log'))}</summary>
           <ol class="log-list compact">
             ${logEntries}
           </ol>
