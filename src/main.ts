@@ -242,7 +242,9 @@ function renderEndingSection(state: GameState): string {
         <ul>${strongestEvidence(state, 5).map(id => `<li>${e(t(`evidence.${id}`))}</li>`).join('')}</ul>
       </section>
       <section class="nearby-endings"><h2>${e(t('label.nearby'))}</h2><p>${nearby.map(item => e(t(item.nameKey))).join(' · ')}</p></section>
-      <section class="next-run"><h2>${e(t('label.nextRun'))}</h2><p>${e(t('ending.nextRun.generic'))}</p></section>
+      <section class="next-run"><h2>${e(t('label.nextRun'))}</h2>${nearby.length > 0
+        ? `<ul>${nearby.map(item => `<li><strong>${e(t(item.nameKey))}：</strong>${e(t(item.hintKey))}</li>`).join('')}</ul>`
+        : `<p>${e(t('ending.nextRun.generic'))}</p>`}</section>
     </section>`
 }
 
@@ -259,7 +261,7 @@ function renderDex(): string {
       <section><h2>${e(t('label.dexEndings'))}</h2><div class="dex-grid endings-grid">
         ${endings.map(ending => dex.discoveredEndingIds.includes(ending.id)
           ? `<article class="dex-card known"><span>[${e(t(`rarity.${ending.rarity}`))}]</span><h3>${e(t(ending.nameKey))}</h3><p>${e(t(ending.descriptionKey, { name: '一名实习生', pronoun: 'ta' }))}</p></article>`
-          : `<article class="dex-card unknown"><span>[?]</span><h3>???</h3><p>${e(t('label.unknown'))}</p></article>`).join('')}
+          : `<article class="dex-card unknown"><span>[?]</span><h3>???</h3><p>${e(t(ending.hintKey))}</p></article>`).join('')}
       </div></section>
     </main>
   `)

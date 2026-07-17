@@ -23,8 +23,8 @@ export function validateContent(): string[] {
   if (activities.length !== 12) errors.push(`Expected 12 activities, received ${activities.length}`)
   if (events.length !== 48) errors.push(`Expected 48 events, received ${events.length}`)
   if (traits.length !== 12) errors.push(`Expected 12 traits, received ${traits.length}`)
-  if (endings.length !== 11) errors.push(`Expected 11 endings, received ${endings.length}`)
-  if (weeklySituations.length !== 20) errors.push(`Expected 20 weekly situations, received ${weeklySituations.length}`)
+  if (endings.length !== 30) errors.push(`Expected 30 endings, received ${endings.length}`)
+  if (weeklySituations.length !== 25) errors.push(`Expected 25 weekly situations, received ${weeklySituations.length}`)
 
   for (const activity of activities) {
     requireText(activity.labelKey)
@@ -47,6 +47,7 @@ export function validateContent(): string[] {
   for (const ending of endings) {
     requireText(ending.nameKey)
     requireText(ending.descriptionKey)
+    requireText(ending.hintKey)
     ending.summaryKeys.forEach(requireText)
     if (!ascii[ending.asciiKey]?.length) errors.push(`Missing ASCII art: ${ending.asciiKey}`)
     for (const required of ending.requiredTraits ?? []) {
@@ -54,6 +55,12 @@ export function validateContent(): string[] {
     }
     for (const evidenceId of [...Object.keys(ending.minimumEvidence ?? {}), ...Object.keys(ending.evidenceWeights ?? {})]) {
       if (!evidenceIds.includes(evidenceId as (typeof evidenceIds)[number])) errors.push(`Unknown evidence ${evidenceId} in ending ${ending.id}`)
+    }
+    for (const activityId of [...Object.keys(ending.minimumActivities ?? {}), ...Object.keys(ending.activityWeights ?? {})]) {
+      if (!activities.some(activity => activity.id === activityId)) errors.push(`Unknown activity ${activityId} in ending ${ending.id}`)
+    }
+    for (const situationId of [...(ending.requiredSituationIds ?? []), ...Object.keys(ending.situationWeights ?? {})]) {
+      if (!weeklySituations.some(situation => situation.id === situationId)) errors.push(`Unknown situation ${situationId} in ending ${ending.id}`)
     }
   }
   for (const situation of weeklySituations) {

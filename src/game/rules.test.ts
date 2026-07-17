@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_LOCALE, getAvailableLocales, getLocale, registerLocale, setLocale, t } from '../content/text'
+import { endings } from '../data/gameData'
 import { validateContent } from '../data/validate'
-import { advanceFromFeedback, chooseEnding, createNewGame, removeSelectedActivity, resolveSelectedWeek, revealComplete, toggleActivity } from './rules'
-import type { GameState } from './types'
+import { advanceFromFeedback, chooseEnding, createNewGame, removeSelectedActivity, resolveSelectedWeek, revealComplete, scoreEnding, toggleActivity } from './rules'
+import { counterIds, evidenceIds, statIds, type Ending, type GameState } from './types'
 
 const schedules = [
   ['fix_bug', 'read_docs', 'pair_programming'],
@@ -22,6 +23,25 @@ function play(seed: number, schedule: string[][] = schedules): GameState {
     }
   }
   return game
+}
+
+function gameForEnding(ending: Ending): GameState {
+  const game = createNewGame(4987)
+  const stats = Object.fromEntries(statIds.map(id => [id, ending.statWeights[id] ? 100 : 0])) as GameState['stats']
+  const counters = Object.fromEntries(counterIds.map(id => [id, ending.counterWeights?.[id] ? 24 : 0])) as GameState['counters']
+  const evidence = Object.fromEntries(evidenceIds.map(id => [id, ending.evidenceWeights?.[id] || ending.minimumEvidence?.[id] ? 100 : 0])) as GameState['evidence']['totals']
+  const weightedActivities = Object.keys(ending.activityWeights ?? {})
+  const activityCounts = Object.fromEntries([...new Set([...weightedActivities, ...Object.keys(ending.minimumActivities ?? {})])].map(id => [id, Math.max(24, ending.minimumActivities?.[id] ?? 0)]))
+  return {
+    ...game,
+    week: 24,
+    stats,
+    counters,
+    traits: [...(ending.requiredTraits ?? [])],
+    activityCounts,
+    situationHistory: [...new Set([...(ending.requiredSituationIds ?? []), ...Object.keys(ending.situationWeights ?? {})])],
+    evidence: { ...game.evidence, totals: evidence },
+  }
 }
 
 describe('game content', () => {
@@ -93,8 +113,24 @@ describe('game rules', () => {
 
   it('withholds the return offer after too many failures', () => {
     const game = play(4987)
-    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index < 20 ? 'criticalFailure' as const : event.outcome }))
+    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index >= 48 ? 'criticalFailure' as const : event.outcome }))
     expect(chooseEnding({ ...game, eventHistory: failedHistory }).id).toBe('no_return_offer')
+  })
+
+  it('does not deny an offer solely for early failures that were later corrected', () => {
+    const game = play(4987)
+    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index < 20 ? 'criticalFailure' as const : 'success' as const }))
+    expect(chooseEnding({ ...game, eventHistory: failedHistory }).id).not.toBe('no_return_offer')
+  })
+
+  it('extends an internship after a difficult start and measurable late recovery', () => {
+    const game = play(4987)
+    const eventHistory = game.eventHistory.map((event, index) => ({
+      ...event,
+      outcome: index < 14 ? 'criticalFailure' as const : index >= 48 && index < 55 ? 'failure' as const : 'success' as const,
+    }))
+    const weeklyDeltas = game.evidence.weeklyDeltas.map((delta, index) => index >= 16 ? { ...delta, engineering: 2 } : delta)
+    expect(chooseEnding({ ...game, eventHistory, evidence: { ...game.evidence, weeklyDeltas } }).id).toBe('internship_extended')
   })
 
   it('is deterministic for the same seed and choices', () => {
@@ -129,7 +165,17 @@ describe('game rules', () => {
     expect(noOfferCount).toBeLessThan(200)
   })
 
-  it('keeps every positive ending reachable', () => {
+  it('keeps every career ending signature satisfiable and able to win its focused state', () => {
+    const careerEndings = endings.filter(ending => !['no_return_offer', 'internship_extended'].includes(ending.id))
+    expect(careerEndings).toHaveLength(28)
+    for (const ending of careerEndings) {
+      const game = gameForEnding(ending)
+      expect(Number.isFinite(scoreEnding(game, ending)), ending.id).toBe(true)
+      expect(chooseEnding(game).id, ending.id).toBe(ending.id)
+    }
+  })
+
+  it('produces varied endings from natural focused schedules', () => {
     const focusedSchedules = [
       ['fix_bug', 'write_tests', 'production_incident'],
       ['build_feature', 'demo', 'team_lunch'],
@@ -148,8 +194,55 @@ describe('game rules', () => {
         if (endingId !== 'no_return_offer') endingIds.add(endingId ?? '')
       }
     }
-    expect(endingIds).toEqual(new Set(['software', 'product', 'research', 'technical_sales', 'developer_relations', 'staff', 'open_source', 'founder', 'flight', 'kubernetes']))
+    expect(endingIds.size).toBeGreaterThanOrEqual(10)
+    expect([...endingIds].every(id => endings.some(ending => ending.id === id))).toBe(true)
   })
+
+  it('keeps the 10000-game multi-strategy distribution diverse', () => {
+    const strategies = [
+      ['fix_bug', 'build_feature', 'write_tests'],
+      ['build_feature', 'build_feature', 'demo'],
+      ['fix_bug', 'fix_bug', 'production_incident'],
+      ['build_feature', 'demo', 'write_tests'],
+      ['write_tests', 'write_tests', 'fix_bug'],
+      ['read_docs', 'write_tests', 'production_incident'],
+      ['read_docs', 'read_docs', 'write_tests'],
+      ['production_incident', 'production_incident', 'write_tests'],
+      ['touch_kubernetes', 'touch_kubernetes', 'production_incident'],
+      ['write_tests', 'touch_kubernetes', 'fix_bug'],
+      ['read_docs', 'build_feature', 'write_tests'],
+      ['read_docs', 'read_docs', 'mentor_1on1'],
+      ['read_docs', 'build_feature', 'tech_talk'],
+      ['read_docs', 'read_docs', 'tech_talk'],
+      ['build_feature', 'mentor_1on1', 'demo'],
+      ['mentor_1on1', 'pair_programming', 'team_lunch'],
+      ['demo', 'read_docs', 'production_incident'],
+      ['demo', 'demo', 'team_lunch'],
+      ['tech_talk', 'tech_talk', 'read_docs'],
+      ['fix_bug', 'production_incident', 'demo'],
+      ['mentor_1on1', 'demo', 'team_lunch'],
+      ['read_docs', 'read_docs', 'tech_talk'],
+      ['pair_programming', 'pair_programming', 'tech_talk'],
+      ['friday_project', 'friday_project', 'read_docs'],
+      ['friday_project', 'friday_project', 'build_feature'],
+      ['friday_project', 'friday_project', 'friday_project'],
+      ['fix_bug', 'read_docs', 'pair_programming'],
+      ['friday_project', 'team_lunch', 'read_docs'],
+    ]
+    const counts = new Map<string, number>()
+    for (let seed = 1; seed <= 10000; seed += 1) {
+      const endingId = play(seed, [strategies[(seed - 1) % strategies.length] as string[]]).endingId as string
+      counts.set(endingId, (counts.get(endingId) ?? 0) + 1)
+    }
+    const noOfferRate = (counts.get('no_return_offer') ?? 0) / 10000
+    const extensionRate = (counts.get('internship_extended') ?? 0) / 10000
+    const largestPositiveShare = Math.max(...[...counts.entries()].filter(([id]) => !['no_return_offer', 'internship_extended'].includes(id)).map(([, count]) => count / 10000))
+    expect(counts.size).toBeGreaterThanOrEqual(23)
+    expect(noOfferRate).toBeGreaterThan(0.02)
+    expect(noOfferRate).toBeLessThan(0.12)
+    expect(extensionRate).toBeLessThan(0.15)
+    expect(largestPositiveShare).toBeLessThan(0.2)
+  }, 30000)
 
   it('never exposes hidden stats in event text', () => {
     const game = play(77)

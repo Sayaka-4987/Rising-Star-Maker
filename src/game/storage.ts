@@ -9,7 +9,11 @@ export function loadGame(): GameState | null {
   if (!value) return null
   if ((value as GameState).schemaVersion === 3) {
     const game = value as GameState
-    return { ...game, evidence: { ...game.evidence, weeklyRisks: game.evidence.weeklyRisks ?? [] } }
+    return {
+      ...game,
+      endingId: game.endingId === 'developer_relations' ? 'technical_community' : game.endingId,
+      evidence: { ...game.evidence, weeklyRisks: game.evidence.weeklyRisks ?? [] },
+    }
   }
   if ((value as { schemaVersion?: number }).schemaVersion === 2) return migrateV2(value as LegacyGameState)
   return null
@@ -29,7 +33,11 @@ export function emptyDex(): HumanDex {
 }
 
 export function loadDex(): HumanDex {
-  return read<HumanDex>(DEX_KEY, value => value.schemaVersion === 1 && Array.isArray(value.discoveredTraitIds)) ?? emptyDex()
+  const dex = read<HumanDex>(DEX_KEY, value => value.schemaVersion === 1 && Array.isArray(value.discoveredTraitIds)) ?? emptyDex()
+  return {
+    ...dex,
+    discoveredEndingIds: dex.discoveredEndingIds.map(id => id === 'developer_relations' ? 'technical_community' : id),
+  }
 }
 
 export function saveDex(dex: HumanDex): void {

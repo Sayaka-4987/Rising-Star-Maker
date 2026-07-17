@@ -80,6 +80,7 @@ export interface Ending {
   nameKey: string
   descriptionKey: string
   summaryKeys: [string, string]
+  hintKey: string
   asciiKey: string
   rarity: Rarity
   priority: number
@@ -90,6 +91,9 @@ export interface Ending {
   traitBonuses?: Record<string, number>
   minimumEvidence?: Partial<EvidenceTotals>
   evidenceWeights?: Partial<EvidenceTotals>
+  minimumActivities?: Record<string, number>
+  requiredSituationIds?: string[]
+  situationWeights?: Record<string, number>
 }
 
 export interface EventResult {

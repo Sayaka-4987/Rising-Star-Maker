@@ -153,5 +153,136 @@
         "     '----+-----'      ",
         "          |            ",
         "       kubectl         "
+    ],
+    "ending.internship_extended": [
+        "    +------------+     ",
+        "    |  +8 WEEKS  |     ",
+        "    +------+-----+     ",
+        "           |           ",
+        "      learn | retry     ",
+        "           v           "
+    ],
+    "ending.frontend": [
+        "  +----------------+  ",
+        "  | [nav]  [user]  |  ",
+        "  |                |  ",
+        "  |   [ACTION]     |  ",
+        "  +----------------+  "
+    ],
+    "ending.backend": [
+        " [client] -> [API]    ",
+        "              |       ",
+        "          [service]   ",
+        "              |       ",
+        "            [DB]      "
+    ],
+    "ending.mobile": [
+        "      .--------.      ",
+        "      | 12:24  |      ",
+        "      | [APP]  |      ",
+        "      |   o    |      ",
+        "      '--------'      "
+    ],
+    "ending.test_engineer": [
+        "  arrange -> act      ",
+        "             |        ",
+        "          assert      ",
+        "             |        ",
+        "           PASS       "
+    ],
+    "ending.security": [
+        "       .----.         ",
+        "      / LOCK \\        ",
+        "     |  [##]  |       ",
+        "      \\______/        ",
+        "     least privilege  "
+    ],
+    "ending.performance": [
+        " slow |#####     fast ",
+        "      |########       ",
+        " p50  |---            ",
+        " p99  |--------       ",
+        "      measure()       "
+    ],
+    "ending.site_reliability": [
+        " [SLO] ---> [ALERT]   ",
+        "    ^          |      ",
+        "    |       [FIX]     ",
+        "    +--- learn()      "
+    ],
+    "ending.data_engineer": [
+        " [raw] -> [clean]     ",
+        "             |        ",
+        "          [table]     ",
+        "             |        ",
+        "        row count: OK "
+    ],
+    "ending.ml_engineer": [
+        " data -> [MODEL]      ",
+        "            |         ",
+        "         [serve]      ",
+        "            |         ",
+        "        monitor()     "
+    ],
+    "ending.data_scientist": [
+        " hypothesis ?        ",
+        "      |              ",
+        "   [DATA] -> chart   ",
+        "      |              ",
+        "   evidence          "
+    ],
+    "ending.applied_scientist": [
+        " [paper] -> [trial]   ",
+        "              |       ",
+        "           [system]   ",
+        "              |       ",
+        "          real use    "
+    ],
+    "ending.program_manager": [
+        " [A]--depends--[B]    ",
+        "   \\          /      ",
+        "    [MILESTONE]       ",
+        "         |            ",
+        "       owner?         "
+    ],
+    "ending.solutions_architect": [
+        " [need] -> [design]   ",
+        "             / \\      ",
+        "         [A]   [B]    ",
+        "           \\ /       ",
+        "          [fit]       "
+    ],
+    "ending.support_engineer": [
+        " ticket -> reproduce  ",
+        "              |       ",
+        "           isolate    ",
+        "              |       ",
+        "          resolved    "
+    ],
+    "ending.ux_researcher": [
+        " user:  ...           ",
+        "        \\             ",
+        "      [listen]        ",
+        "          |           ",
+        "       pattern?       "
+    ],
+    "ending.technical_writer": [
+        " # Start here         ",
+        " 1. prepare           ",
+        " 2. verify            ",
+        " 3. recover           ",
+        " docs: up to date     "
+    ],
+    "ending.programming_instructor": [
+        "  code -> explain     ",
+        "    ^        |        ",
+        "    |      try()      ",
+        "    +----- learn      "
+    ],
+    "ending.independent_developer": [
+        " idea -> v0.1 -> user ",
+        "  ^               |   ",
+        "  +---- feedback--+   ",
+        "       ship again     "
     ]
 }

@@ -153,34 +153,38 @@ export function ensureCurrentSituation(game: GameState): GameState {
 export function scoreEnding(game: GameState, ending: Ending, ignoreRequirements = false): number {
   if (!ignoreRequirements && ending.requiredTraits?.some(id => !game.traits.includes(id))) return Number.NEGATIVE_INFINITY
   if (!ignoreRequirements && Object.entries(ending.minimumEvidence ?? {}).some(([id, minimum]) => game.evidence.totals[id as EvidenceId] < (minimum ?? 0))) return Number.NEGATIVE_INFINITY
+  if (!ignoreRequirements && Object.entries(ending.minimumActivities ?? {}).some(([id, minimum]) => (game.activityCounts[id] ?? 0) < minimum)) return Number.NEGATIVE_INFINITY
+  if (!ignoreRequirements && ending.requiredSituationIds?.some(id => !game.situationHistory.includes(id))) return Number.NEGATIVE_INFINITY
   let score = 0
   for (const [id, weight] of Object.entries(ending.statWeights)) score += game.stats[id as keyof Stats] * (weight ?? 0)
   for (const [id, weight] of Object.entries(ending.activityWeights ?? {})) score += (game.activityCounts[id] ?? 0) * weight
   for (const [id, weight] of Object.entries(ending.counterWeights ?? {})) score += game.counters[id as keyof Counters] * (weight ?? 0)
   for (const [id, bonus] of Object.entries(ending.traitBonuses ?? {})) if (game.traits.includes(id)) score += bonus
   for (const [id, weight] of Object.entries(ending.evidenceWeights ?? {})) score += game.evidence.totals[id as EvidenceId] * (weight ?? 0)
+  for (const [id, weight] of Object.entries(ending.situationWeights ?? {})) score += game.situationHistory.filter(situationId => situationId === id).length * weight
   return score
 }
 
 export function chooseEnding(game: GameState): Ending {
   const noReturnOffer = endings.find(ending => ending.id === 'no_return_offer')
-  if (noReturnOffer && failureBurden(game) >= 36) return noReturnOffer
-  return [...endings].sort((left, right) => {
-    const scoreDelta = scoreEnding(game, right) - scoreEnding(game, left)
-    return scoreDelta || right.priority - left.priority || left.id.localeCompare(right.id)
-  })[0] as Ending
+  const lateBurden = failureBurden(game, 8)
+  if (noReturnOffer && lateBurden >= 10) return noReturnOffer
+  const internshipExtended = endings.find(ending => ending.id === 'internship_extended')
+  const earlyBurden = failureBurden(game) - lateBurden
+  if (internshipExtended && earlyBurden >= 18 && lateBurden >= 7 && lateBurden < 10 && recentPositiveEvidence(game) >= 12) return internshipExtended
+  const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
+  if (eligible.length === 0) return endings.find(ending => ending.id === 'software') as Ending
+  return rankEndings(game, eligible)[0] as Ending
 }
 
 export function predictedEndings(game: GameState): Ending[] {
-  const eligible = endings.filter(ending => ending.id !== 'no_return_offer' && !ending.requiredTraits?.some(id => !game.traits.includes(id)))
-  return [...eligible].sort((a, b) => scoreEnding(game, b) - scoreEnding(game, a) || b.priority - a.priority).slice(0, 3)
+  const eligible = endings.filter(ending => ending.id !== 'no_return_offer' && ending.id !== 'internship_extended' && Number.isFinite(scoreEnding(game, ending)))
+  return rankEndings(game, eligible).slice(0, 3)
 }
 
 export function nearbyEndings(game: GameState): Ending[] {
-  return [...endings]
-    .filter(ending => ending.id !== game.endingId && ending.id !== 'no_return_offer' && scoreEnding(game, ending) > Number.NEGATIVE_INFINITY)
-    .sort((a, b) => scoreEnding(game, b) - scoreEnding(game, a) || b.priority - a.priority)
-    .slice(0, 2)
+  const eligible = endings.filter(ending => ending.id !== game.endingId && !['no_return_offer', 'internship_extended'].includes(ending.id) && scoreEnding(game, ending) > Number.NEGATIVE_INFINITY)
+  return rankEndings(game, eligible).slice(0, 2)
 }
 
 export function reportLines(game: GameState): string[] {
@@ -405,12 +409,35 @@ function repetitionChaosDelta(previousCount: number): number {
   return 0
 }
 
-function failureBurden(game: GameState): number {
-  return game.eventHistory.reduce((total, event) => {
+function failureBurden(game: GameState, weeks?: number): number {
+  const events = weeks === undefined ? game.eventHistory : game.eventHistory.filter(event => event.week > game.week - weeks)
+  return events.reduce((total, event) => {
     if (event.outcome === 'criticalFailure') return total + 2
     if (event.outcome === 'failure') return total + 1
     return total
-  }, 0) + game.counters.scopeCreep
+  }, 0)
+}
+
+function recentPositiveEvidence(game: GameState): number {
+  return game.evidence.weeklyDeltas
+    .slice(Math.max(0, game.week - 8), game.week)
+    .reduce((total, week) => total + Object.values(week ?? {}).reduce((sum, value) => sum + (value ?? 0), 0), 0)
+}
+
+function rankEndings(game: GameState, candidates: Ending[]): Ending[] {
+  if (candidates.length === 0) return []
+  const byBaseScore = [...candidates].sort((left, right) => scoreEnding(game, right) - scoreEnding(game, left) || right.priority - left.priority || left.id.localeCompare(right.id))
+  const highest = scoreEnding(game, byBaseScore[0] as Ending)
+  const closeThreshold = Math.max(3, Math.abs(highest) * 0.03)
+  const close = byBaseScore.filter(ending => highest - scoreEnding(game, ending) <= closeThreshold)
+  const resolved = close.sort((left, right) => adjustedEndingScore(game, right) - adjustedEndingScore(game, left) || right.priority - left.priority || left.id.localeCompare(right.id))
+  return [...resolved, ...byBaseScore.filter(ending => !close.includes(ending))]
+}
+
+function adjustedEndingScore(game: GameState, ending: Ending): number {
+  let hash = game.seed ^ 0x9e3779b9
+  for (const character of ending.id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
+  return scoreEnding(game, ending) + ((hash >>> 0) % 501) / 100
 }
 
 function findNextTrait(game: GameState): string | undefined {
