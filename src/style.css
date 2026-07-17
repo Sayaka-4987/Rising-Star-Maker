@@ -47,6 +47,38 @@ button:focus-visible {
   gap: 16px;
 }
 
+.locale-switch {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+}
+
+.locale-switch > span {
+  margin: 0 6px 0 4px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.locale-button {
+  min-height: 28px;
+  min-width: 54px;
+  padding: 4px 8px;
+  border-color: var(--line);
+  font-size: 12px;
+}
+
+.locale-button.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(155, 212, 169, .08);
+}
+
 .app-shell > footer {
   margin-top: auto;
   padding: 8px 4px 0;
@@ -171,6 +203,18 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
 .intern-panel, .log-panel, .activity-panel { padding: 20px; }
 .intern-panel { position: sticky; top: 16px; text-align: center; }
 .intern-panel .portrait { font-size: 13px; }
+.portrait-desktop { display: block; }
+.portrait-fold { display: none; margin: 0 0 10px; text-align: left; }
+.portrait-fold > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.portrait-fold > summary::-webkit-details-marker { display: none; }
+.portrait-fold[open] > summary { border-style: solid; color: var(--green); }
 .intern-panel h2 { margin: 2px 0; }
 .intern-panel h3 { margin-top: 24px; color: var(--muted); font-size: 13px; font-weight: 500; }
 .latest-observation { margin: 22px 0 0; padding-top: 18px; border-top: 1px dashed var(--line); color: #b7c8bd; font-size: 13px; line-height: 1.8; text-align: left; }
@@ -333,11 +377,16 @@ button.schedule-slot { cursor: pointer; }
 
 @media (max-width: 780px) {
   .app-shell { padding: 10px; }
+  .locale-switch { align-self: stretch; justify-content: flex-end; }
   .topbar { grid-template-columns: 1fr auto; }
   .topbar strong { grid-row: 2; grid-column: 1 / -1; margin-top: 8px; }
   .game-grid { grid-template-columns: 1fr; }
   .intern-panel, .log-panel { position: static; }
-  .intern-panel .portrait { display: none; }
+  .intern-panel { padding: 14px; }
+  .portrait-desktop { display: none; }
+  .portrait-fold { display: block; }
+  .portrait-fold .portrait { margin: 10px auto 6px; }
+  .latest-observation { margin-top: 12px; padding-top: 12px; }
   .activity-list { grid-template-columns: 1fr; }
   .schedule-bar { flex-direction: column; }
   .schedule-slots { grid-template-columns: 1fr; }

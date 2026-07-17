@@ -1,5 +1,5 @@
 import asciiData from './content/ascii.json'
-import { t } from './content/text'
+import { getLocale, setLocale, t } from './content/text'
 import { activities, endings, traits } from './data/gameData'
 import { activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
@@ -9,6 +9,10 @@ const ascii = asciiData as Record<string, string[]>
 const rootElement = document.querySelector<HTMLDivElement>('#app')
 if (!rootElement) throw new Error('App root is missing')
 const root = rootElement
+const LOCALE_STORAGE_KEY = 'rsm.locale'
+
+const preferredLocale = loadPreferredLocale()
+if (preferredLocale) setLocale(preferredLocale)
 
 let game = loadGame()
 if (game) game = ensureCurrentSituation(game)
@@ -55,6 +59,8 @@ root.addEventListener('click', event => {
       dex = loadDex()
       view = 'title'
     }
+  } else if (action === 'set-locale' && id) {
+    if (setLocale(id)) persistLocale(id)
   }
   render()
 })
@@ -118,7 +124,11 @@ function renderPlanning(state: GameState): string {
     </header>
     <main class="game-grid">
       <aside class="intern-panel panel">
-        ${portrait(state.profile.portraitId, state.profile.name)}
+        <div class="portrait-desktop">${portrait(state.profile.portraitId, state.profile.name)}</div>
+        <details class="portrait-fold">
+          <summary>${e(t('label.portrait'))}</summary>
+          ${portrait(state.profile.portraitId, state.profile.name)}
+        </details>
         <h2>${e(state.profile.name)}</h2>
         <p class="muted">${e(t(`gender.${state.profile.gender}`))} · ${e(state.profile.pronoun)}</p>
         <h3>${e(t('label.traits'))}</h3>
@@ -249,18 +259,20 @@ function renderEndingSection(state: GameState): string {
 }
 
 function renderDex(): string {
+  const neutralPronoun = localizedNeutralPronoun()
+  const genericInternName = localizedGenericInternName()
   return shell(`
     <main class="dex-screen panel fade-in">
       <div class="section-heading"><div><p class="eyebrow">HUMANDEX</p><h1>${e(t('button.dex'))}</h1></div>${button('home', t('button.back'), 'quiet')}</div>
       <p>${e(t('label.games', { count: dex.gamesCompleted }))}</p>
       <section><h2>${e(t('label.dexTraits'))}</h2><div class="dex-grid">
         ${traits.map(trait => dex.discoveredTraitIds.includes(trait.id)
-          ? `<article class="dex-card known"><span>[T]</span><h3>${e(t(trait.nameKey))}</h3><p>${e(t(trait.descriptionKey, { pronoun: 'ta' }))}</p></article>`
+          ? `<article class="dex-card known"><span>[T]</span><h3>${e(t(trait.nameKey))}</h3><p>${e(t(trait.descriptionKey, { pronoun: neutralPronoun }))}</p></article>`
           : `<article class="dex-card unknown"><span>[?]</span><h3>???</h3><p>${e(t('label.unknown'))}</p></article>`).join('')}
       </div></section>
       <section><h2>${e(t('label.dexEndings'))}</h2><div class="dex-grid endings-grid">
         ${endings.map(ending => dex.discoveredEndingIds.includes(ending.id)
-          ? `<article class="dex-card known"><span>[${e(t(`rarity.${ending.rarity}`))}]</span><h3>${e(t(ending.nameKey))}</h3><p>${e(t(ending.descriptionKey, { name: '一名实习生', pronoun: 'ta' }))}</p></article>`
+          ? `<article class="dex-card known"><span>[${e(t(`rarity.${ending.rarity}`))}]</span><h3>${e(t(ending.nameKey))}</h3><p>${e(t(ending.descriptionKey, { name: genericInternName, pronoun: neutralPronoun }))}</p></article>`
           : `<article class="dex-card unknown"><span>[?]</span><h3>???</h3><p>${e(t(ending.hintKey))}</p></article>`).join('')}
       </div></section>
     </main>
@@ -302,11 +314,37 @@ function button(action: string, label: string, classes = '', disabled = false): 
 }
 
 function shell(content: string): string {
-  return `<div class="app-shell">${content}<footer>RSM // LOCAL STATIC BUILD // TEXT FIRST</footer></div>`
+  const locale = getLocale()
+  return `<div class="app-shell"><div class="locale-switch" role="group" aria-label="${e(t('label.language'))}"><span>${e(t('label.language'))}</span><button class="button small locale-button ${locale === 'en-US' ? 'active' : ''}" data-action="set-locale" data-id="en-US">EN</button><button class="button small locale-button ${locale === 'zh-CN' ? 'active' : ''}" data-action="set-locale" data-id="zh-CN">中文</button></div>${content}<footer>RSM // LOCAL STATIC BUILD // TEXT FIRST</footer></div>`
 }
 
 function persist(): void {
   if (game) saveGame(game)
+}
+
+function loadPreferredLocale(): string | null {
+  try {
+    const value = window.localStorage.getItem(LOCALE_STORAGE_KEY)
+    return value === 'en-US' || value === 'zh-CN' ? value : null
+  } catch {
+    return null
+  }
+}
+
+function persistLocale(locale: string): void {
+  try {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale)
+  } catch {
+    // Ignore storage errors in restricted environments.
+  }
+}
+
+function localizedNeutralPronoun(): string {
+  return getLocale() === 'en-US' ? 'they' : 'ta'
+}
+
+function localizedGenericInternName(): string {
+  return getLocale() === 'en-US' ? 'an intern' : '一名实习生'
 }
 
 function recordEnding(state: GameState): void {

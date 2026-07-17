@@ -1,4 +1,4 @@
-import { t } from '../content/text'
+import { getLocale, t } from '../content/text'
 import { activities, endings, events, observationKeys, profileNameKeys, traits, weeklySituations } from '../data/gameData'
 import { nextRandom, pickOne, randomInt, weightedPick } from './rng'
 import { counterIds, evidenceIds, riskIds, statIds, type Activity, type Counters, type Ending, type EvidenceId, type EvidenceTotals, type EventResult, type GameState, type GenderId, type OutcomeId, type RiskId, type RiskTotals, type SituationHint, type Stats, type WeeklySituation } from './types'
@@ -353,7 +353,8 @@ function topEvidence(game: GameState, limit: number): EvidenceId[] {
 }
 
 function internVariables(game: GameState): Record<string, string> {
-  return { name: game.profile.name, pronoun: game.profile.pronoun }
+  const pronoun = getLocale() === 'en-US' ? 'they' : game.profile.pronoun
+  return { name: game.profile.name, pronoun }
 }
 
 function normalizeInitialStats(stats: Stats): void {

@@ -1,4 +1,5 @@
 import messages from './zh-CN.json'
+import enUSMessages from './en-US.json'
 
 export type MessageCatalog = Readonly<Record<string, string>>
 
@@ -6,6 +7,7 @@ export const DEFAULT_LOCALE = 'zh-CN'
 
 const catalogs = new Map<string, MessageCatalog>([
   [DEFAULT_LOCALE, messages as MessageCatalog],
+  ['en-US', enUSMessages as MessageCatalog],
 ])
 
 let activeLocale = DEFAULT_LOCALE
