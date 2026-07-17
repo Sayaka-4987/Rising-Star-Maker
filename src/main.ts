@@ -71,8 +71,8 @@ function render(): void {
 
 function renderTitle(): string {
   return shell(`
-    ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', localeSwitcher())}
     <main class="title-screen panel" aria-labelledby="game-title">
+      <div class="title-locale-switch">${localeSwitcher()}</div>
       <div class="logo" aria-hidden="true">
         <strong>RISING STAR MAKER</strong>
         <span>INTERN OBSERVATION v0.1</span>

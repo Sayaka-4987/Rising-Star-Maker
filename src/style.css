@@ -141,6 +141,13 @@ button:focus-visible {
 
 .title-screen {
   font-family: 'Segoe UI', 'Microsoft YaHei UI', 'Noto Sans CJK SC', 'PingFang SC', Arial, sans-serif;
+  position: relative;
+}
+
+.title-locale-switch {
+  position: absolute;
+  top: 18px;
+  right: 18px;
 }
 
 .logo {
@@ -391,6 +398,7 @@ button.schedule-slot { cursor: pointer; }
   .topbar { grid-template-columns: 1fr auto; }
   .topbar-center { grid-row: 2; grid-column: 1 / -1; justify-self: start; margin-top: 8px; }
   .topbar-actions { grid-column: 2; align-items: center; }
+  .title-locale-switch { top: 12px; right: 12px; }
   .game-grid { grid-template-columns: 1fr; }
   .intern-panel { position: static; }
   .intern-panel, .activity-panel, .log-panel { padding: 14px; }
