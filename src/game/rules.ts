@@ -28,12 +28,12 @@ export function createNewGame(seed: number): GameState {
   normalizeInitialStats(stats)
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     seed,
     rngState,
     phase: 'reveal',
     week: 1,
-    profile: { name, gender: gender.id, pronoun: gender.pronoun, portraitId: `portrait.${portraitIndex}`, observationKey },
+    profile: { nameKey, name, gender: gender.id, pronoun: gender.pronoun, portraitId: `portrait.${portraitIndex}`, observationKey },
     stats,
     traits: [],
     counters: Object.fromEntries(counterIds.map(id => [id, 0])) as Counters,
@@ -354,7 +354,7 @@ function topEvidence(game: GameState, limit: number): EvidenceId[] {
 
 function internVariables(game: GameState): Record<string, string> {
   const pronoun = getLocale() === 'en-US' ? 'they' : game.profile.pronoun
-  return { name: game.profile.name, pronoun }
+  return { name: localizedProfileName(game.profile), pronoun }
 }
 
 function normalizeInitialStats(stats: Stats): void {
@@ -378,6 +378,11 @@ function applyDeltas<T extends Record<string, number>>(target: T, deltas?: Parti
     const key = id as keyof T
     target[key] = Math.max(0, Math.min(100, (target[key] ?? 0) + (delta ?? 0))) as T[keyof T]
   }
+}
+
+export function localizedProfileName(profile: GameState['profile']): string {
+  if (profile.nameKey) return t(profile.nameKey)
+  return profile.name
 }
 
 function determineOutcome(game: GameState, activity: Activity, situationHint?: SituationHint): [OutcomeId, number] {

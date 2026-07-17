@@ -1,7 +1,7 @@
 import asciiData from './content/ascii.json'
 import { getLocale, setLocale, t } from './content/text'
 import { activities, endings, traits } from './data/gameData'
-import { activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
+import { activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, localizedProfileName, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
 import type { GameState, HumanDex } from './game/types'
 
@@ -105,9 +105,10 @@ function renderReveal(state: GameState): string {
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, '', localeSwitcher())}
     <main class="center-screen panel fade-in">
       <p class="eyebrow">NEW INTERN RECEIVED</p>
-      ${portrait(state.profile.portraitId, state.profile.name)}
-      <h1>${e(state.profile.name)}</h1>
+      ${portrait(state.profile.portraitId, localizedProfileName(state.profile))}
+      <h1>${e(localizedProfileName(state.profile))}</h1>
       <p class="profile-meta">${e(formatForIntern('label.gender', state, { gender: t(`gender.${state.profile.gender}`) }))}</p>
+      <p class="profile-meta">${e(localizedProfilePronoun(state.profile))}</p>
       <blockquote>${e(formatForIntern(state.profile.observationKey, state))}</blockquote>
       ${button('reveal', t('button.begin'), 'primary')}
     </main>
@@ -122,13 +123,13 @@ function renderPlanning(state: GameState): string {
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}${localeSwitcher()}`)}
     <main class="game-grid">
       <aside class="intern-panel panel">
-        <div class="portrait-desktop">${portrait(state.profile.portraitId, state.profile.name)}</div>
+        <div class="portrait-desktop">${portrait(state.profile.portraitId, localizedProfileName(state.profile))}</div>
         <details class="portrait-fold">
           <summary>${e(t('label.portrait'))}</summary>
-          ${portrait(state.profile.portraitId, state.profile.name)}
+          ${portrait(state.profile.portraitId, localizedProfileName(state.profile))}
         </details>
-        <h2>${e(state.profile.name)}</h2>
-        <p class="muted">${e(t(`gender.${state.profile.gender}`))} · ${e(state.profile.pronoun)}</p>
+        <h2>${e(localizedProfileName(state.profile))}</h2>
+        <p class="muted">${e(t(`gender.${state.profile.gender}`))} · ${e(localizedProfilePronoun(state.profile))}</p>
         <h3>${e(t('label.traits'))}</h3>
         ${traitChips(state)}
         <section class="log-inline">
@@ -176,7 +177,7 @@ function renderResult(state: GameState): string {
     <main class="weekly-results panel fade-in">
       <div class="results-heading">
         <div><p class="eyebrow">WEEKLY RESULTS</p><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
-        <span>${e(state.profile.name)}</span>
+        <span>${e(localizedProfileName(state.profile))}</span>
       </div>
       ${situation ? `<article class="feedback-situation">
         <span>${e(t(`situation.kind.${situation.kind}`))}</span>
@@ -238,7 +239,7 @@ function renderEndingSection(state: GameState): string {
   const nearby = nearbyEndings(state)
   return `<section class="ending-screen embedded-ending">
       <p class="eyebrow">${e(t('label.ending'))}</p>
-      <pre class="ending-art" aria-hidden="true">${e((ascii[ending.asciiKey] ?? []).join('\n').replace('name', state.profile.name))}</pre>
+      <pre class="ending-art" aria-hidden="true">${e((ascii[ending.asciiKey] ?? []).join('\n').replace('name', localizedProfileName(state.profile)))}</pre>
       <h1>${e(t(ending.nameKey))}</h1>
       <p class="rarity rarity-${ending.rarity}">${e(t('label.rarity', { rarity: t(`rarity.${ending.rarity}`) }))}</p>
       <p class="ending-description">${e(formatForIntern(ending.descriptionKey, state))}</p>
@@ -348,6 +349,13 @@ function persistLocale(locale: string): void {
 
 function localizedNeutralPronoun(): string {
   return getLocale() === 'en-US' ? 'they' : 'ta'
+}
+
+function localizedProfilePronoun(profile: GameState['profile']): string {
+  if (getLocale() !== 'en-US') return profile.pronoun
+  if (profile.gender === 'male') return 'he/his'
+  if (profile.gender === 'female') return 'she/her'
+  return 'they'
 }
 
 function localizedGenericInternName(): string {

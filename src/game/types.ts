@@ -23,6 +23,7 @@ export type SituationKind = 'common' | 'opportunity' | 'trouble' | 'rare'
 export type SituationHint = 'opportunity' | 'risk' | 'related'
 
 export interface InternProfile {
+  nameKey: string
   name: string
   gender: GenderId
   pronoun: string
