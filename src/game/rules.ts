@@ -146,7 +146,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
     const event = events.find(candidate => candidate.activityId === activityId && candidate.outcome === outcome)
     if (!event) throw new Error(`Missing ${outcome} event for ${activityId}`)
     let eventTags = event.tags ?? []
-    ;[eventTags, working.rngState] = resolveEventTagsForOutcome(working.rngState, outcome, eventTags)
+    ;[eventTags, working.rngState] = resolveEventTagsForOutcome(working.rngState, outcome, eventTags, working.evidence.totals)
     let textKey
     ;[textKey, working.rngState] = pickOne(working.rngState, event.textKeys)
     applyDeltas(working.stats, event.statDeltas)
@@ -488,16 +488,37 @@ function determineOutcome(game: GameState, activity: Activity, situationHint?: S
   return ['criticalSuccess', nextState]
 }
 
-function resolveEventTagsForOutcome(rngState: number, outcome: OutcomeId, eventTags: string[]): [string[], number] {
+function resolveEventTagsForOutcome(
+  rngState: number,
+  outcome: OutcomeId,
+  eventTags: string[],
+  evidenceTotals: EvidenceTotals,
+): [string[], number] {
   if (!(outcome === 'success' || outcome === 'criticalSuccess') || eventTags.length <= 1) return [eventTags, rngState]
 
   const hobbyTags = [...new Set(eventTags.filter((tag): tag is EvidenceId => evidenceIds.includes(tag as EvidenceId)))]
   if (hobbyTags.length <= 1) return [eventTags, rngState]
+  const hobbyPreferenceWeight: Partial<Record<EvidenceId, number>> = {
+    gaming: 1.15,
+    anime: 1.15,
+    finance: 0.9,
+  }
 
-  let selectedHobby: EvidenceId
-  ;[selectedHobby, rngState] = pickOne(rngState, hobbyTags)
+  // Keep one random hobby gain per successful event, but prefer stacking current interests.
+  const weightedHobbies = hobbyTags.map(tag => {
+    const current = Math.max(0, evidenceTotals[tag] ?? 0)
+    const hasMomentum = current > 0
+    const preference = hobbyPreferenceWeight[tag] ?? 1
+    return {
+      id: tag,
+      weight: (hasMomentum ? 1 + Math.min(3, Math.floor(current / 3) + 1) : 1) * preference,
+    }
+  })
+
+  let selected: { id: EvidenceId; weight: number }
+  ;[selected, rngState] = weightedPick(rngState, weightedHobbies)
   const fixedTags = eventTags.filter(tag => !evidenceIds.includes(tag as EvidenceId))
-  return [[...fixedTags, selectedHobby], rngState]
+  return [[...fixedTags, selected.id], rngState]
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {

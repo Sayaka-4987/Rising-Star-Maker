@@ -89,7 +89,7 @@ const eventGroups: Record<string, Partial<Record<OutcomeId, OutcomeSeed>>> = {
   read_docs: {
     criticalFailure: { statDeltas: { curiosity: -3 }, highlight: true },
     failure: { statDeltas: { technical: -1 } },
-    success: { counterDeltas: { docsRead: 1 }, tags: ['finance'] },
+    success: { counterDeltas: { docsRead: 1 } },
     criticalSuccess: { statDeltas: { curiosity: 2, independence: 1 }, counterDeltas: { docsRead: 2 }, tags: ['aviation', 'finance'], highlight: true },
   },
   pair_programming: {
