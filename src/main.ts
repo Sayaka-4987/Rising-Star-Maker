@@ -224,9 +224,11 @@ function renderResult(state: GameState): string {
 
 function renderReportSection(state: GameState): string {
   const month = state.week / 4
+  const isChinese = getLocale() === 'zh-CN'
   return `<section class="report-screen paper embedded-report">
-      <p class="report-stamp">INTERN REPORT // MONTH ${month}</p>
-      <h1>${e(formatForIntern(`report.title.${month}`, state))}</h1>
+      ${isChinese
+        ? `<div class="report-header"><h1>${e(formatForIntern(`report.title.${month}`, state))}</h1><p class="report-stamp">INTERN REPORT // MONTH ${month}</p></div>`
+        : `<p class="report-stamp">INTERN REPORT // MONTH ${month}</p><h1>${e(formatForIntern(`report.title.${month}`, state))}</h1>`}
       <hr>
       <h2>${e(t('label.confirmed'))}</h2>
       <ul>${reportLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
@@ -372,9 +374,9 @@ function localizedGenericInternName(): string {
 }
 
 function situationImpactSymbol(hint: SituationHint): string {
-  if (hint === 'opportunity') return '↑↑'
-  if (hint === 'risk') return '↓↓'
-  return '↔'
+  if (hint === 'opportunity') return '📈'
+  if (hint === 'risk') return '📉'
+  return '➖'
 }
 
 function recordEnding(state: GameState): void {
