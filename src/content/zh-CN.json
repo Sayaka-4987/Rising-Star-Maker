@@ -35,7 +35,7 @@
   "label.dexTitle": "实习生图鉴",
   "label.dexTraits": "观察过的特征",
   "label.dexEndings": "抵达过的结局",
-  "label.games": "已完成 {count} 次实习观察",
+  "label.games": "已带过 {count} 个实习生",
   "label.unknown": "尚未观察到",
   "label.emptySlot": "空行程",
   "label.resultProgress": "本周记录 {current} / 3",
