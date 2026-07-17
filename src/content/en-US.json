@@ -45,6 +45,7 @@
   "label.situation": "What Happened This Week",
   "label.situationEffect": "This Week's Impact",
   "label.monthlyReview": "Monthly Checkpoint",
+  "label.monthlyReviewHint": "Open this report to review the patterns and risks that have become visible so far.",
   "label.confirmed": "Confirmed So Far",
   "label.attention": "Still Needs Attention",
   "label.trend": "Recent Trend",

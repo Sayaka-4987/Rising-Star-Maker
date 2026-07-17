@@ -232,8 +232,11 @@ function renderReportSection(state: GameState): string {
   const foldTitle = isChinese ? `月度报告 · 第 ${month} 月` : `Intern Report · Month ${month}`
   return `<details class="report-fold embedded-report">
       <summary class="report-fold-summary">
-        <strong>${e(foldTitle)}</strong>
-        <span class="report-fold-toggle"><span class="report-fold-closed">${e(isChinese ? '展开' : 'Expand')}</span><span class="report-fold-open">${e(isChinese ? '收起' : 'Collapse')}</span></span>
+        <span class="report-fold-copy">
+          <strong>${e(foldTitle)}</strong>
+          <small>${e(t('label.monthlyReviewHint'))}</small>
+        </span>
+        <span class="report-fold-toggle"><span class="report-fold-closed">${e(isChinese ? '展开查看' : 'Open Report')}</span><span class="report-fold-open">${e(isChinese ? '收起报告' : 'Hide Report')}</span></span>
       </summary>
       <section class="report-screen paper">
         ${isChinese

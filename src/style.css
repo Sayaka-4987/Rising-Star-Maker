@@ -289,6 +289,10 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
 .portrait-fold[open] > summary { border-style: solid; color: var(--green); }
 .intern-panel h2 { margin: 2px 0; }
 .intern-panel h3 { margin-top: 24px; color: var(--muted); font-size: 14px; font-weight: 500; }
+.intern-panel > h3 {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
 .log-inline {
   margin-top: 18px;
   padding-top: 14px;
@@ -570,21 +574,38 @@ button.schedule-slot { cursor: pointer; }
   background: rgba(155, 212, 169, .03);
 }
 .report-fold > summary::-webkit-details-marker { display: none; }
+.report-fold-copy {
+  display: grid;
+  gap: 4px;
+}
 .report-fold-summary strong {
   color: var(--green);
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
-.report-fold-toggle {
+.report-fold-copy small {
   color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.report-fold-toggle {
+  color: var(--text);
   font-size: 13px;
-  border: 1px solid var(--line);
-  padding: 3px 10px;
+  border: 1px solid var(--line-bright);
+  background: rgba(155, 212, 169, .08);
+  padding: 5px 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .report-fold-open { display: none; }
 .report-fold[open] .report-fold-open { display: inline; }
 .report-fold[open] .report-fold-closed { display: none; }
+.report-fold[open] .report-fold-toggle {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(230, 200, 134, .08);
+}
 .report-fold > .report-screen { margin: 0; }
 
 .ending-screen { width: 100%; }
@@ -670,6 +691,13 @@ button.schedule-slot { cursor: pointer; }
   .feedback-situation { padding: 12px 14px; }
   .result-card { padding: 16px; }
   .paper { padding: 22px 16px; }
+  .report-fold > summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .report-fold-toggle {
+    align-self: flex-start;
+  }
   .ending-evidence { margin: 28px 0; padding: 16px; }
   .nearby-endings, .next-run { margin: 18px auto; padding: 14px 16px; }
   .activity-list { grid-template-columns: 1fr; }

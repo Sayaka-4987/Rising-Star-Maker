@@ -45,6 +45,7 @@
   "label.situation": "本周新闻",
   "label.situationEffect": "这周的影响",
   "label.monthlyReview": "阶段性总结",
+  "label.monthlyReviewHint": "点击展开，查看这一阶段的判断。",
   "label.confirmed": "这段时间已经确认",
   "label.attention": "仍需关注",
   "label.trend": "最近趋势",
