@@ -1,6 +1,7 @@
 import asciiData from './content/ascii.json'
 import { getLocale, setLocale, t } from './content/text'
-import { activities, endings, traits } from './data/gameData'
+import { activities, endings, events, traits } from './data/gameData'
+import { TOTAL_WEEKS, WEEKS_PER_MONTH, scaleLegacyWeek } from './game/config'
 import { achievementIds, activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, localizedProfileName, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
 import type { EventResult, GameState, HumanDex, SituationHint } from './game/types'
@@ -10,6 +11,28 @@ const rootElement = document.querySelector<HTMLDivElement>('#app')
 if (!rootElement) throw new Error('App root is missing')
 const root = rootElement
 const LOCALE_STORAGE_KEY = 'rsm.locale'
+const eventById = new Map(events.map(event => [event.id, event]))
+
+const statLabelKeyById: Record<string, string> = {
+  technical: 'stat.technical',
+  curiosity: 'stat.curiosity',
+  independence: 'stat.independence',
+  social: 'stat.social',
+  creativity: 'stat.creativity',
+  ambition: 'stat.ambition',
+  chaos: 'stat.chaos',
+}
+
+const counterLabelKeyById: Record<string, string> = {
+  bugsFixed: 'counter.bugsFixed',
+  docsRead: 'counter.docsRead',
+  questionsAsked: 'counter.questionsAsked',
+  demosGiven: 'counter.demosGiven',
+  socialEscapes: 'counter.socialEscapes',
+  sideProjects: 'counter.sideProjects',
+  incidentsObserved: 'counter.incidentsObserved',
+  scopeCreep: 'counter.scopeCreep',
+}
 
 const preferredLocale = loadPreferredLocale()
 if (preferredLocale) setLocale(preferredLocale)
@@ -105,7 +128,7 @@ function renderGame(state: GameState): string {
   switch (state.phase) {
     case 'reveal': return renderReveal(state)
     case 'action': return renderPlanning(state)
-    case 'feedback': return state.week === 24 && state.endingId && state.endingRevealed ? renderEndingPage(state) : renderResult(state)
+    case 'feedback': return state.week === TOTAL_WEEKS && state.endingId && state.endingRevealed ? renderEndingPage(state) : renderResult(state)
   }
 }
 
@@ -184,9 +207,9 @@ function renderPlanning(state: GameState): string {
 function renderResult(state: GameState): string {
   if (state.pendingResults.length === 0) return ''
   const situation = situationById(state.currentSituationId)
-  const nextLabel = state.week === 24 ? t('button.finish') : t('button.nextWeek')
-  const hasReport = state.week % 4 === 0 && state.week < 24
-  const canRevealEnding = state.week === 24 && Boolean(state.endingId) && !state.endingRevealed
+  const nextLabel = state.week === TOTAL_WEEKS ? t('button.finish') : t('button.nextWeek')
+  const hasReport = state.week % WEEKS_PER_MONTH === 0 && state.week < TOTAL_WEEKS
+  const canRevealEnding = state.week === TOTAL_WEEKS && Boolean(state.endingId) && !state.endingRevealed
   const resultLayoutClass = !hasReport ? ' no-summary' : ''
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
@@ -213,6 +236,7 @@ function renderResult(state: GameState): string {
               <span class="outcome outcome-${result.outcome}">${e(t(`outcome.${result.outcome}`))}</span>
             </header>
             <p class="event-copy">${e(localizedEventText(result, state))}</p>
+            ${renderDeltaHintStrip(result)}
             ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.effect.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.effect.${result.situationHint}`))}"><span>${e(situationImpactSymbol(result.situationHint))}</span><span>${e(t(`situation.effect.${result.situationHint}`))}</span></p>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
@@ -227,7 +251,7 @@ function renderResult(state: GameState): string {
         <p class="result-decor-copy">${e(t('label.resultDeckCopy'))}</p>
       </section>` : ''}
       ${hasReport ? renderReportSection(state) : ''}
-      <div class="results-actions">${state.week === 24
+      <div class="results-actions">${state.week === TOTAL_WEEKS
         ? canRevealEnding
           ? `${button('view-ending', t('button.viewEnding'), 'primary')}${button('home', t('button.home'), 'quiet')}`
           : `${button('new', t('button.again'), 'primary')}${button('dex', t('button.dex'))}${button('home', t('button.home'), 'quiet')}`
@@ -247,7 +271,7 @@ function renderEndingPage(state: GameState): string {
 }
 
 function renderReportSection(state: GameState): string {
-  const month = state.week / 4
+  const month = state.week / WEEKS_PER_MONTH
   const isChinese = getLocale() === 'zh-CN'
   const foldTitle = isChinese ? `月度报告 · 第 ${month} 个月` : `Intern Report · Month ${month}`
   return `<details class="report-fold embedded-report">
@@ -269,7 +293,7 @@ function renderReportSection(state: GameState): string {
         <ul>${reportAttentionLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
         <h2>${e(t('label.trend'))}</h2>
         <ul>${reportTrendLines(state).map(line => `<li>${e(line)}</li>`).join('')}</ul>
-        ${state.week >= 20 ? `<h2>${e(t('label.direction'))}</h2>
+        ${state.week >= scaleLegacyWeek(20) ? `<h2>${e(t('label.direction'))}</h2>
         <ol class="directions">${predictedEndings(state).map(ending => `<li>${e(t(ending.nameKey))}</li>`).join('')}</ol>` : ''}
       </section>
     </details>`
@@ -414,6 +438,52 @@ function situationImpactSymbol(hint: SituationHint): string {
   if (hint === 'opportunity') return '📈'
   if (hint === 'risk') return '📉'
   return '➖'
+}
+
+function renderDeltaHintStrip(result: EventResult): string {
+  const activity = activityById(result.activityId)
+  const event = eventById.get(result.eventId)
+  if (!activity || !event) return ''
+
+  const deltas = new Map<string, number>()
+  const add = (key: string, value?: number) => {
+    if (!value) return
+    deltas.set(key, (deltas.get(key) ?? 0) + value)
+  }
+
+  for (const [id, value] of Object.entries(activity.statDeltas)) add(`stat:${id}`, value)
+  for (const [id, value] of Object.entries(event.statDeltas ?? {})) add(`stat:${id}`, value)
+  for (const [id, value] of Object.entries(event.counterDeltas ?? {})) add(`counter:${id}`, value)
+  for (const [id, value] of Object.entries(result.evidenceDeltas ?? {})) add(`evidence:${id}`, value)
+
+  const hints = [...deltas.entries()]
+    .filter(([, value]) => value !== 0)
+    .sort((left, right) => Math.abs(right[1]) - Math.abs(left[1]))
+    .slice(0, 5)
+    .map(([id, value]) => renderSingleDeltaHint(id, value))
+    .filter(Boolean)
+
+  if (hints.length === 0) return ''
+  return `<div class="delta-hint-strip" aria-label="${e(t('label.deltaHint'))}">${hints.join('')}</div>`
+}
+
+function renderSingleDeltaHint(rawKey: string, value: number): string {
+  const [kind, id] = rawKey.split(':')
+  if (!id) return ''
+  const labelKey = kind === 'stat'
+    ? statLabelKeyById[id]
+    : kind === 'counter'
+      ? counterLabelKeyById[id]
+      : kind === 'evidence'
+        ? `evidence.${id}`
+        : undefined
+  if (!labelKey) return ''
+
+  const symbol = value > 0
+    ? '+'.repeat(Math.min(4, Math.abs(value)))
+    : '-'.repeat(Math.min(4, Math.abs(value)))
+  const tone = value > 0 ? 'pos' : 'neg'
+  return `<span class="delta-hint delta-${tone}">${e(t(labelKey))}${e(symbol)}</span>`
 }
 
 function recordEnding(state: GameState): void {

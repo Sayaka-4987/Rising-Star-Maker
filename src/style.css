@@ -494,6 +494,23 @@ button.schedule-slot { cursor: pointer; }
 .outcome-success { color: var(--green); }
 .outcome-criticalSuccess { color: var(--amber); box-shadow: 0 0 16px rgba(230, 200, 134, .12); }
 .event-copy { margin: 10px 0 0; color: #c7d5cc; font-size: 14px; line-height: 1.6; }
+.delta-hint-strip {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.delta-hint {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px dashed var(--line);
+  background: rgba(255, 255, 255, .025);
+  font-size: 11px;
+  letter-spacing: .08em;
+  line-height: 1.3;
+}
+.delta-pos { color: var(--green); border-color: rgba(155, 212, 169, .45); }
+.delta-neg { color: var(--red); border-color: rgba(217, 148, 132, .55); }
 .situation-impact {
   width: fit-content;
   margin: 8px 0 0;

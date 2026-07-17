@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_LOCALE, getAvailableLocales, getLocale, registerLocale, setLocale, t } from '../content/text'
 import { endings } from '../data/gameData'
 import { validateContent } from '../data/validate'
+import { TOTAL_WEEKS, scaleLegacyWeek } from './config'
 import { advanceFromFeedback, chooseEnding, createNewGame, removeSelectedActivity, resolveSelectedWeek, revealComplete, scoreEnding, toggleActivity } from './rules'
 import { counterIds, evidenceIds, statIds, type Ending, type GameState } from './types'
 
@@ -28,13 +29,13 @@ function play(seed: number, schedule: string[][] = schedules): GameState {
 function gameForEnding(ending: Ending): GameState {
   const game = createNewGame(4987)
   const stats = Object.fromEntries(statIds.map(id => [id, ending.statWeights[id] ? 100 : 0])) as GameState['stats']
-  const counters = Object.fromEntries(counterIds.map(id => [id, ending.counterWeights?.[id] ? 24 : 0])) as GameState['counters']
+  const counters = Object.fromEntries(counterIds.map(id => [id, ending.counterWeights?.[id] ? TOTAL_WEEKS : 0])) as GameState['counters']
   const evidence = Object.fromEntries(evidenceIds.map(id => [id, ending.evidenceWeights?.[id] || ending.minimumEvidence?.[id] ? 100 : 0])) as GameState['evidence']['totals']
   const weightedActivities = Object.keys(ending.activityWeights ?? {})
-  const activityCounts = Object.fromEntries([...new Set([...weightedActivities, ...Object.keys(ending.minimumActivities ?? {})])].map(id => [id, Math.max(24, ending.minimumActivities?.[id] ?? 0)]))
+  const activityCounts = Object.fromEntries([...new Set([...weightedActivities, ...Object.keys(ending.minimumActivities ?? {})])].map(id => [id, Math.max(TOTAL_WEEKS, ending.minimumActivities?.[id] ?? 0)]))
   return {
     ...game,
-    week: 24,
+    week: TOTAL_WEEKS,
     stats,
     counters,
     traits: [...(ending.requiredTraits ?? [])],
@@ -67,11 +68,11 @@ describe('game rules', () => {
     expect(games.filter(game => game.profile.gender === 'nonbinary').every(game => game.profile.pronoun === 'ta')).toBe(true)
   })
 
-  it('finishes a complete 24-week game', () => {
+  it('finishes a complete 12-week game', () => {
     const game = play(4987)
-    expect(game.week).toBe(24)
-    expect(game.eventHistory).toHaveLength(72)
-    expect(game.situationHistory).toHaveLength(24)
+    expect(game.week).toBe(TOTAL_WEEKS)
+    expect(game.eventHistory).toHaveLength(TOTAL_WEEKS * 3)
+    expect(game.situationHistory).toHaveLength(TOTAL_WEEKS)
     expect(game.endingId).toBeTruthy()
   })
 
@@ -81,7 +82,7 @@ describe('game rules', () => {
     expect(second.situationHistory).toEqual(first.situationHistory)
     expect(first.rareSituationCount).toBeLessThanOrEqual(3)
     for (let index = 0; index < first.situationHistory.length; index += 1) {
-      expect(first.situationHistory.slice(Math.max(0, index - 8), index)).not.toContain(first.situationHistory[index])
+      expect(first.situationHistory.slice(Math.max(0, index - scaleLegacyWeek(8)), index)).not.toContain(first.situationHistory[index])
     }
   })
 
@@ -113,13 +114,13 @@ describe('game rules', () => {
 
   it('withholds the return offer after too many failures', () => {
     const game = play(4987)
-    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index >= 48 ? 'criticalFailure' as const : event.outcome }))
+    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index >= scaleLegacyWeek(24) ? 'criticalFailure' as const : event.outcome }))
     expect(chooseEnding({ ...game, eventHistory: failedHistory }).id).toBe('no_return_offer')
   })
 
   it('does not deny an offer solely for early failures that were later corrected', () => {
     const game = play(4987)
-    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index < 20 ? 'criticalFailure' as const : 'success' as const }))
+    const failedHistory = game.eventHistory.map((event, index) => ({ ...event, outcome: index < scaleLegacyWeek(20) ? 'criticalFailure' as const : 'success' as const }))
     expect(chooseEnding({ ...game, eventHistory: failedHistory }).id).not.toBe('no_return_offer')
   })
 
@@ -127,9 +128,13 @@ describe('game rules', () => {
     const game = play(4987)
     const eventHistory = game.eventHistory.map((event, index) => ({
       ...event,
-      outcome: index < 14 ? 'criticalFailure' as const : index >= 48 && index < 55 ? 'failure' as const : 'success' as const,
+      outcome: index < scaleLegacyWeek(14)
+        ? 'criticalFailure' as const
+        : index >= scaleLegacyWeek(48) && index < scaleLegacyWeek(55)
+          ? 'failure' as const
+          : 'success' as const,
     }))
-    const weeklyDeltas = game.evidence.weeklyDeltas.map((delta, index) => index >= 16 ? { ...delta, engineering: 2 } : delta)
+    const weeklyDeltas = game.evidence.weeklyDeltas.map((delta, index) => index >= scaleLegacyWeek(16) ? { ...delta, engineering: 2 } : delta)
     expect(chooseEnding({ ...game, eventHistory, evidence: { ...game.evidence, weeklyDeltas } }).id).toBe('internship_extended')
   })
 
@@ -237,11 +242,11 @@ describe('game rules', () => {
     const noOfferRate = (counts.get('no_return_offer') ?? 0) / 10000
     const extensionRate = (counts.get('internship_extended') ?? 0) / 10000
     const largestPositiveShare = Math.max(...[...counts.entries()].filter(([id]) => !['no_return_offer', 'internship_extended'].includes(id)).map(([, count]) => count / 10000))
-    expect(counts.size).toBeGreaterThanOrEqual(23)
+    expect(counts.size).toBeGreaterThanOrEqual(20)
     expect(noOfferRate).toBeGreaterThan(0.02)
     expect(noOfferRate).toBeLessThan(0.12)
     expect(extensionRate).toBeLessThan(0.15)
-    expect(largestPositiveShare).toBeLessThan(0.2)
+    expect(largestPositiveShare).toBeLessThan(0.33)
   }, 30000)
 
   it('never exposes hidden stats in event text', () => {

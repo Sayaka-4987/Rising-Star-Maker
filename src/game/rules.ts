@@ -1,5 +1,6 @@
 import { getLocale, t } from '../content/text'
 import { activities, endings, events, observationKeys, profileNameKeys, traits, weeklySituations } from '../data/gameData'
+import { TOTAL_WEEKS, scaleLegacyWeek, toLegacyEquivalentCount } from './config'
 import { nextRandom, pickOne, randomInt, weightedPick } from './rng'
 import { counterIds, evidenceIds, riskIds, statIds, type Activity, type Counters, type Ending, type EvidenceId, type EvidenceTotals, type EventResult, type GameState, type GenderId, type OutcomeId, type RiskId, type RiskTotals, type SituationHint, type Stats, type WeeklySituation } from './types'
 
@@ -177,7 +178,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
   working.evidence.weeklyRisks[game.week - 1] = weeklyRisks
   const pendingAchievementIds = unlockAchievements(working, scheduledActivityIds)
   const unlockedAchievementIds = [...new Set([...working.unlockedAchievementIds, ...pendingAchievementIds])]
-  const endingId = game.week === 24 ? chooseEnding(working).id : undefined
+  const endingId = game.week === TOTAL_WEEKS ? chooseEnding(working).id : undefined
   return {
     ...working,
     phase: 'feedback',
@@ -192,7 +193,7 @@ export function resolveSelectedWeek(game: GameState): GameState {
 }
 
 export function advanceFromFeedback(game: GameState): GameState {
-  if (game.phase !== 'feedback' || game.week === 24) return game
+  if (game.phase !== 'feedback' || game.week === TOTAL_WEEKS) return game
   return prepareSituation({ ...game, phase: 'action', week: game.week + 1, pendingResults: [], pendingAchievementIds: [], resultIndex: 0 })
 }
 
@@ -207,12 +208,12 @@ export function ensureCurrentSituation(game: GameState): GameState {
 export function scoreEnding(game: GameState, ending: Ending, ignoreRequirements = false): number {
   if (!ignoreRequirements && ending.requiredTraits?.some(id => !game.traits.includes(id))) return Number.NEGATIVE_INFINITY
   if (!ignoreRequirements && Object.entries(ending.minimumEvidence ?? {}).some(([id, minimum]) => game.evidence.totals[id as EvidenceId] < (minimum ?? 0))) return Number.NEGATIVE_INFINITY
-  if (!ignoreRequirements && Object.entries(ending.minimumActivities ?? {}).some(([id, minimum]) => (game.activityCounts[id] ?? 0) < minimum)) return Number.NEGATIVE_INFINITY
+  if (!ignoreRequirements && Object.entries(ending.minimumActivities ?? {}).some(([id, minimum]) => legacyCount(game.activityCounts[id] ?? 0) < minimum)) return Number.NEGATIVE_INFINITY
   if (!ignoreRequirements && ending.requiredSituationIds?.some(id => !game.situationHistory.includes(id))) return Number.NEGATIVE_INFINITY
   let score = 0
   for (const [id, weight] of Object.entries(ending.statWeights)) score += game.stats[id as keyof Stats] * (weight ?? 0)
-  for (const [id, weight] of Object.entries(ending.activityWeights ?? {})) score += (game.activityCounts[id] ?? 0) * weight
-  for (const [id, weight] of Object.entries(ending.counterWeights ?? {})) score += game.counters[id as keyof Counters] * (weight ?? 0)
+  for (const [id, weight] of Object.entries(ending.activityWeights ?? {})) score += legacyCount(game.activityCounts[id] ?? 0) * weight
+  for (const [id, weight] of Object.entries(ending.counterWeights ?? {})) score += legacyCount(game.counters[id as keyof Counters]) * (weight ?? 0)
   for (const [id, bonus] of Object.entries(ending.traitBonuses ?? {})) if (game.traits.includes(id)) score += bonus
   for (const [id, weight] of Object.entries(ending.evidenceWeights ?? {})) score += game.evidence.totals[id as EvidenceId] * (weight ?? 0)
   for (const [id, weight] of Object.entries(ending.situationWeights ?? {})) score += game.situationHistory.filter(situationId => situationId === id).length * weight
@@ -221,11 +222,17 @@ export function scoreEnding(game: GameState, ending: Ending, ignoreRequirements 
 
 export function chooseEnding(game: GameState): Ending {
   const noReturnOffer = endings.find(ending => ending.id === 'no_return_offer')
-  const lateBurden = failureBurden(game, 8)
-  if (noReturnOffer && lateBurden >= 10) return noReturnOffer
+  const lateBurden = failureBurden(game, scaleLegacyWeek(8))
+  if (noReturnOffer && legacyCount(lateBurden) >= 14) return noReturnOffer
   const internshipExtended = endings.find(ending => ending.id === 'internship_extended')
   const earlyBurden = failureBurden(game) - lateBurden
-  if (internshipExtended && earlyBurden >= 18 && lateBurden >= 7 && lateBurden < 10 && recentPositiveEvidence(game) >= 12) return internshipExtended
+  if (
+    internshipExtended
+    && legacyCount(earlyBurden) >= 18
+    && legacyCount(lateBurden) >= 7
+    && legacyCount(lateBurden) < 10
+    && legacyCount(recentPositiveEvidence(game)) >= 12
+  ) return internshipExtended
   const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
   if (eligible.length === 0) return endings.find(ending => ending.id === 'software') as Ending
   return rankEndings(game, eligible)[0] as Ending
@@ -286,7 +293,7 @@ export function hintForActivity(situation: WeeklySituation | undefined, activity
 }
 
 function prepareSituation(game: GameState): GameState {
-  const cutoff = Math.max(0, game.situationHistory.length - 8)
+  const cutoff = Math.max(0, game.situationHistory.length - scaleLegacyWeek(8))
   const coolingDown = new Set(game.situationHistory.slice(cutoff))
   const available = weeklySituations.filter(situation => {
     if (situation.minimumWeek > game.week || coolingDown.has(situation.id)) return false
@@ -302,7 +309,7 @@ function prepareSituation(game: GameState): GameState {
     { kind: 'common' as const, weight: 45 },
     { kind: 'opportunity' as const, weight: 25 },
     { kind: 'trouble' as const, weight: 20 },
-    { kind: 'rare' as const, weight: game.week >= 5 && game.rareSituationCount < 3 ? 10 : 0 },
+    { kind: 'rare' as const, weight: game.week >= scaleLegacyWeek(5) && game.rareSituationCount < 3 ? 10 : 0 },
   ].filter(item => item.weight > 0 && candidates.some(candidate => candidate.kind === item.kind))
   let selectedKind: (typeof kinds)[number]
   let rngState: number
@@ -480,7 +487,7 @@ function failureBurden(game: GameState, weeks?: number): number {
 
 function recentPositiveEvidence(game: GameState): number {
   return game.evidence.weeklyDeltas
-    .slice(Math.max(0, game.week - 8), game.week)
+    .slice(Math.max(0, game.week - scaleLegacyWeek(8)), game.week)
     .reduce((total, week) => total + Object.values(week ?? {}).reduce((sum, value) => sum + (value ?? 0), 0), 0)
 }
 
@@ -537,24 +544,24 @@ function unlockAchievements(game: GameState, scheduledActivityIds: string[]): st
   const count = (activityId: string): number => counts[activityId] ?? 0
   const thisWeekResults = game.pendingResults
 
-  if (count('team_lunch') >= 4) unlock('delivery_convoy')
+  if (legacyCount(count('team_lunch')) >= 4) unlock('delivery_convoy')
   if (scheduledActivityIds.every(id => id === 'team_lunch')) unlock('quite_hungry')
-  if (count('friday_project') >= 6) unlock('friday_grind_king')
+  if (legacyCount(count('friday_project')) >= 6) unlock('friday_grind_king')
   if (game.eventHistory.some(event => event.activityId === 'production_incident' && event.outcome === 'criticalFailure')) unlock('dont_touch_production')
   if (game.eventHistory.filter(event => event.tags.includes('aviation')).length >= 4) unlock('route_planning_master')
 
-  if (count('fix_bug') >= 8) unlock('fix_bug_grinder')
-  if (count('build_feature') >= 8) unlock('crud_hero')
-  if (count('write_tests') >= 8) unlock('test_marathon')
-  if (count('read_docs') >= 8) unlock('docs_master')
-  if (count('pair_programming') >= 8) unlock('duo_ranked')
-  if (count('tech_talk') >= 8) unlock('tech_standup_show')
-  if (count('fix_bug') >= 6 && count('write_tests') >= 6) unlock('release_gatekeeper')
-  if (count('mentor_1on1') >= 8) unlock('counseling_room')
-  if (count('demo') >= 8) unlock('demo_perpetual')
-  if (count('production_incident') >= 8) unlock('incident_growth')
-  if (count('touch_kubernetes') >= 8) unlock('cloud_native_pro')
-  if (count('friday_project') >= 10) unlock('friday_hackathon_resident')
+  if (legacyCount(count('fix_bug')) >= 8) unlock('fix_bug_grinder')
+  if (legacyCount(count('build_feature')) >= 8) unlock('crud_hero')
+  if (legacyCount(count('write_tests')) >= 8) unlock('test_marathon')
+  if (legacyCount(count('read_docs')) >= 8) unlock('docs_master')
+  if (legacyCount(count('pair_programming')) >= 8) unlock('duo_ranked')
+  if (legacyCount(count('tech_talk')) >= 8) unlock('tech_standup_show')
+  if (legacyCount(count('fix_bug')) >= 6 && legacyCount(count('write_tests')) >= 6) unlock('release_gatekeeper')
+  if (legacyCount(count('mentor_1on1')) >= 8) unlock('counseling_room')
+  if (legacyCount(count('demo')) >= 8) unlock('demo_perpetual')
+  if (legacyCount(count('production_incident')) >= 8) unlock('incident_growth')
+  if (legacyCount(count('touch_kubernetes')) >= 8) unlock('cloud_native_pro')
+  if (legacyCount(count('friday_project')) >= 10) unlock('friday_hackathon_resident')
 
   if (thisWeekResults.length === 3 && thisWeekResults.every(result => result.outcome === 'criticalSuccess')) unlock('grand_slam')
   if (thisWeekResults.length === 3 && thisWeekResults.every(result => result.outcome === 'failure' || result.outcome === 'criticalFailure')) unlock('team_wipe')
@@ -565,7 +572,7 @@ function unlockAchievements(game: GameState, scheduledActivityIds: string[]): st
   })) unlock('comeback_reversal')
 
   if (game.stats.chaos >= 90) unlock('chaos_lord')
-  if (game.week >= 12 && game.stats.chaos <= 15) unlock('cyber_zen')
+  if (game.week >= scaleLegacyWeek(12) && game.stats.chaos <= 15) unlock('cyber_zen')
   if (game.evidence.risks.scopeCreep >= 10) unlock('scope_inflation')
   if (game.stats.social >= 85) unlock('social_ceiling')
   if (game.stats.curiosity >= 85) unlock('ten_thousand_whys')
@@ -573,13 +580,13 @@ function unlockAchievements(game: GameState, scheduledActivityIds: string[]): st
   if (game.traits.length >= 8) unlock('trait_hoarder')
   if (game.counters.questionsAsked >= 20) unlock('question_barrage')
   if (game.counters.bugsFixed >= 20) unlock('bug_street_sweeper')
-  if (game.week === 24) unlock('internship_survivor')
+  if (game.week === TOTAL_WEEKS) unlock('internship_survivor')
 
   return newlyUnlocked
 }
 
 function traitCondition(id: string, game: GameState): boolean {
-  const count = (activityId: string) => game.activityCounts[activityId] ?? 0
+  const count = (activityId: string) => legacyCount(game.activityCounts[activityId] ?? 0)
   const socialCount = count('team_lunch') + count('mentor_1on1') + count('demo')
   const meetingCount = count('tech_talk') + count('team_lunch') + count('demo')
   const aviationEvents = game.eventHistory.filter(event => event.tags.includes('aviation'))
@@ -588,7 +595,7 @@ function traitCondition(id: string, game: GameState): boolean {
     case 'bug_hunter': return count('fix_bug') >= 5 && game.stats.technical >= 60
     case 'doc_goblin': return count('read_docs') >= 5 && game.stats.curiosity >= 60
     case 'test_guardian': return count('write_tests') >= 5 && game.stats.technical >= 60
-    case 'coffee_powered': return game.week >= 8 && socialCount >= 6
+    case 'coffee_powered': return game.week >= scaleLegacyWeek(8) && socialCount >= 6
     case 'meeting_goblin': return meetingCount >= 10 && game.stats.social >= 65
     case 'architecture_brain': return game.stats.technical >= 75 && game.stats.curiosity >= 70 && ['bug_hunter', 'doc_goblin'].some(trait => game.traits.includes(trait))
     case 'open_source_addict': return count('friday_project') >= 5 && game.stats.creativity >= 65
@@ -598,4 +605,8 @@ function traitCondition(id: string, game: GameState): boolean {
     case 'chaotic_good': return game.stats.chaos >= 75 && game.traits.length >= 4
     default: return false
   }
+}
+
+function legacyCount(value: number): number {
+  return toLegacyEquivalentCount(value)
 }
