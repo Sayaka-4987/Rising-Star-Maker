@@ -210,6 +210,7 @@ function renderResult(state: GameState): string {
   const hasReport = state.week % WEEKS_PER_MONTH === 0 && state.week < TOTAL_WEEKS
   const canRevealEnding = state.week === TOTAL_WEEKS && Boolean(state.endingId) && !state.endingRevealed
   const resultLayoutClass = !hasReport ? ' no-summary' : ''
+  const showResultDecor = shouldShowResultDecor(state, hasReport)
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), `${button('home', t('button.home'), 'quiet small')}<span class="topbar-divider" aria-hidden="true">·</span>${localeSwitcher()}`)}
     <main class="weekly-results panel fade-in${resultLayoutClass}">
@@ -245,7 +246,7 @@ function renderResult(state: GameState): string {
           </article>`
         }).join('')}
       </div>
-      ${!hasReport ? `<section class="result-decor" aria-label="${e(t('label.resultDeckTitle'))}">
+      ${showResultDecor ? `<section class="result-decor" aria-label="${e(t('label.resultDeckTitle'))}">
         <p class="result-decor-title">${e(t('label.resultDeckTitle'))}</p>
         <p class="result-decor-copy">${e(t('label.resultDeckCopy'))}</p>
       </section>` : ''}
@@ -257,6 +258,23 @@ function renderResult(state: GameState): string {
         : button('next-feedback', nextLabel, 'primary')}</div>
     </main>
   `)
+}
+
+function shouldShowResultDecor(state: GameState, hasReport: boolean): boolean {
+  if (hasReport) return false
+  if (state.pendingResults.length === 0) return false
+
+  const totalEventLength = state.pendingResults
+    .map(result => localizedEventText(result, state).length)
+    .reduce((sum, length) => sum + length, 0)
+  const averageEventLength = totalEventLength / state.pendingResults.length
+  const hasRichCardContent = state.pendingResults.some(result =>
+    Boolean(result.unlockedTraitId)
+    || (result.tags?.length ?? 0) >= 3
+    || Object.keys(result.evidenceDeltas ?? {}).length >= 4,
+  )
+
+  return !(hasRichCardContent || averageEventLength >= 60)
 }
 
 function renderEndingPage(state: GameState): string {

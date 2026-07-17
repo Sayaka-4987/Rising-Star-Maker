@@ -243,7 +243,14 @@ export function chooseEnding(game: GameState): Ending {
 
   const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
   if (eligible.length === 0) return endings.find(ending => ending.id === 'software') as Ending
-  return rankEndings(game, eligible)[0] as Ending
+
+  const highestRarity = Math.max(...eligible.map(ending => rarityRank(ending.rarity)))
+  const rarest = eligible
+    .filter(ending => rarityRank(ending.rarity) === highestRarity)
+    .sort((left, right) => right.priority - left.priority || left.id.localeCompare(right.id))
+
+  if (rarest.length === 1) return rarest[0] as Ending
+  return pickDeterministicEnding(game, rarest, 'ending-rarest')
 }
 
 export function predictedEndings(game: GameState): Ending[] {
@@ -532,6 +539,19 @@ function deterministicChance(game: GameState, salt: string): number {
   for (const character of salt) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
   hash = Math.imul(hash ^ game.eventHistory.length, 2246822519)
   return ((hash >>> 0) % 1000) / 1000
+}
+
+function rarityRank(rarity: Ending['rarity']): number {
+  if (rarity === 'legendary') return 4
+  if (rarity === 'epic') return 3
+  if (rarity === 'rare') return 2
+  return 1
+}
+
+function pickDeterministicEnding(game: GameState, candidates: Ending[], salt: string): Ending {
+  const chance = deterministicChance(game, `${salt}:${candidates.map(ending => ending.id).join('|')}`)
+  const index = Math.floor(chance * candidates.length)
+  return candidates[Math.min(index, candidates.length - 1)] as Ending
 }
 
 function progressTraitsAndUnlock(game: GameState): string | undefined {

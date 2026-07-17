@@ -477,11 +477,11 @@ button.schedule-slot { cursor: pointer; }
 .weekly-results.no-summary .result-list {
   flex: 1;
   align-content: stretch;
-  grid-auto-rows: 1fr;
-  min-height: clamp(280px, 38vh, 560px);
+  grid-auto-rows: minmax(0, 1fr);
+  min-height: 0;
 }
 .weekly-results.no-summary .result-card {
-  min-height: clamp(220px, 30vh, 420px);
+  min-height: 0;
   padding: 16px;
 }
 .weekly-results.no-summary .event-copy {
@@ -490,7 +490,7 @@ button.schedule-slot { cursor: pointer; }
 }
 .weekly-results.no-summary .result-decor {
   margin-top: 14px;
-  min-height: clamp(70px, 10vh, 140px);
+  min-height: 0;
 }
 .weekly-results.no-summary .results-actions {
   margin-top: auto;
