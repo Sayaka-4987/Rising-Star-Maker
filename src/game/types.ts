@@ -131,8 +131,10 @@ export interface GameState {
   activityCounts: Record<string, number>
   selectedActivityIds: string[]
   pendingResults: EventResult[]
+  pendingAchievementIds: string[]
   resultIndex: number
   eventHistory: EventResult[]
+  unlockedAchievementIds: string[]
   currentSituationId: string
   situationHistory: string[]
   rareSituationCount: number
@@ -142,8 +144,9 @@ export interface GameState {
 }
 
 export interface HumanDex {
-  schemaVersion: 1
+  schemaVersion: number
   discoveredTraitIds: string[]
   discoveredEndingIds: string[]
+  discoveredAchievementIds: string[]
   gamesCompleted: number
 }

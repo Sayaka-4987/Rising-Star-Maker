@@ -34,7 +34,25 @@ export function t(key: string, variables: Record<string, string | number> = {}):
   const fallback = catalogs.get(DEFAULT_LOCALE) as MessageCatalog
   const template = catalogs.get(activeLocale)?.[key] ?? fallback[key]
   if (!template) return `[${key}]`
-  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(variables[name] ?? `{${name}}`))
+  return template.replace(/\{(\w+)\}/g, (_: string, name: string, offset: number, whole: string) => {
+    const raw = variables[name]
+    if (raw === undefined || raw === null) return `{${name}}`
+    const value = String(raw)
+    if (name !== 'pronoun') return value
+    if (!isSentenceStart(whole, offset)) return value
+    return capitalizeFirst(value)
+  })
+}
+
+function isSentenceStart(template: string, offset: number): boolean {
+  if (offset === 0) return true
+  const prefix = template.slice(0, offset)
+  return /(?:^|[.!?。！？]\s*)$/.test(prefix)
+}
+
+function capitalizeFirst(value: string): string {
+  if (value.length === 0) return value
+  return value[0].toUpperCase() + value.slice(1)
 }
 
 export function hasText(key: string): boolean {

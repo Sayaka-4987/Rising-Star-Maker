@@ -1,7 +1,7 @@
 import asciiData from './content/ascii.json'
 import { getLocale, setLocale, t } from './content/text'
 import { activities, endings, traits } from './data/gameData'
-import { activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, localizedProfileName, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
+import { achievementIds, activityById, advanceFromFeedback, createNewGame, ensureCurrentSituation, formatForIntern, hintForActivity, localizedProfileName, nearbyEndings, predictedEndings, removeSelectedActivity, reportAttentionLines, reportLines, reportTrendLines, resolveSelectedWeek, revealComplete, situationById, strongestEvidence, toggleActivity } from './game/rules'
 import { clearAllData, loadDex, loadGame, saveDex, saveGame } from './game/storage'
 import type { GameState, HumanDex } from './game/types'
 
@@ -47,6 +47,7 @@ root.addEventListener('click', event => {
   } else if (action === 'start-week' && game) {
     const hadEnding = Boolean(game.endingId)
     game = resolveSelectedWeek(game)
+    if (game.pendingAchievementIds.length > 0) recordAchievements(game)
     if (!hadEnding && game.endingId) recordEnding(game)
     persist()
   } else if (action === 'next-feedback' && game) {
@@ -80,6 +81,12 @@ function renderTitle(): string {
       <p class="eyebrow">${e(t('app.subtitle'))}</p>
       <p class="tagline">${e(t('app.tagline'))}</p>
       <p class="intro">${e(t('app.intro'))}</p>
+      <details class="achievement-fold">
+        <summary>${e(t('button.achievements'))} <strong>${dex.discoveredAchievementIds.length}/${achievementIds.length}</strong></summary>
+        ${dex.discoveredAchievementIds.length > 0
+          ? `<ul class="achievement-list">${dex.discoveredAchievementIds.map(id => `<li><strong>${e(t(`achievement.${id}.name`))}</strong><p>${e(t(`achievement.${id}.description`))}</p></li>`).join('')}</ul>`
+          : `<p class="achievement-empty">${e(t('label.noAchievements'))}</p>`}
+      </details>
       <div class="title-locale-inline">${localeSwitcher()}</div>
       <div class="title-actions">
         ${game ? button('continue', t('button.continue'), 'primary') : ''}
@@ -175,6 +182,9 @@ function renderResult(state: GameState): string {
   return shell(`
     ${topbar(`<div class="topbar-brand"><span class="status-dot"></span>${e(t('app.title'))}</div>`, e(t('label.week', { week: state.week })), localeSwitcher())}
     <main class="weekly-results panel fade-in">
+      ${state.pendingAchievementIds.length > 0
+        ? `<section class="achievement-toast" aria-live="polite"><strong>${e(t('label.newAchievement'))}</strong><ul>${state.pendingAchievementIds.map(id => `<li>${e(t(`achievement.${id}.name`))}</li>`).join('')}</ul></section>`
+        : ''}
       <div class="results-heading">
         <div><p class="eyebrow">WEEKLY RESULTS</p><h1>${e(t('label.weekResults', { week: state.week }))}</h1></div>
         <span>${e(localizedProfileName(state.profile))}</span>
@@ -286,7 +296,7 @@ function activityCard(id: string, state: GameState): string {
   const hint = hintForActivity(situationById(state.currentSituationId), id)
   return `<button class="activity-card ${selectedCount > 0 ? 'selected' : ''}" data-action="select-activity" data-id="${e(id)}" ${state.selectedActivityIds.length === 3 ? 'disabled' : ''}>
     <span class="activity-icon">${e(activity.icon)}</span>
-    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}</strong>${hint ? `<mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}<small>${e(t(activity.descriptionKey))}</small></span>
+    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}</strong><small>${e(t(activity.descriptionKey))}${hint ? ` <mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}</small></span>
   </button>`
 }
 
@@ -368,6 +378,15 @@ function recordEnding(state: GameState): void {
     gamesCompleted: dex.gamesCompleted + 1,
     discoveredTraitIds: [...new Set([...dex.discoveredTraitIds, ...state.traits])],
     discoveredEndingIds: [...new Set([...dex.discoveredEndingIds, state.endingId as string])],
+  }
+  saveDex(dex)
+}
+
+function recordAchievements(state: GameState): void {
+  if (state.pendingAchievementIds.length === 0) return
+  dex = {
+    ...dex,
+    discoveredAchievementIds: [...new Set([...dex.discoveredAchievementIds, ...state.pendingAchievementIds])],
   }
   saveDex(dex)
 }

@@ -12,6 +12,8 @@ export function loadGame(): GameState | null {
     return {
       ...game,
       endingId: game.endingId === 'developer_relations' ? 'technical_community' : game.endingId,
+      pendingAchievementIds: game.pendingAchievementIds ?? [],
+      unlockedAchievementIds: game.unlockedAchievementIds ?? [],
       evidence: { ...game.evidence, weeklyRisks: game.evidence.weeklyRisks ?? [] },
     }
   }
@@ -28,14 +30,37 @@ export function clearGame(): void {
 }
 
 export function emptyDex(): HumanDex {
-  return { schemaVersion: 1, discoveredTraitIds: [], discoveredEndingIds: [], gamesCompleted: 0 }
+  return { schemaVersion: 2, discoveredTraitIds: [], discoveredEndingIds: [], discoveredAchievementIds: [], gamesCompleted: 0 }
 }
 
 export function loadDex(): HumanDex {
-  const dex = read<HumanDex>(DEX_KEY, value => value.schemaVersion === 1 && Array.isArray(value.discoveredTraitIds)) ?? emptyDex()
+  const rawDex = read<unknown>(
+    DEX_KEY,
+    value => typeof value === 'object' && value !== null,
+  )
+  const data = (rawDex ?? {}) as Partial<HumanDex> & {
+    schemaVersion?: number
+    discoveredTraitIds?: unknown
+    discoveredEndingIds?: unknown
+    discoveredAchievementIds?: unknown
+    gamesCompleted?: unknown
+  }
+  const hasCoreArrays = Array.isArray(data.discoveredTraitIds) && Array.isArray(data.discoveredEndingIds)
+  const gamesCompleted = typeof data.gamesCompleted === 'number' ? data.gamesCompleted : 0
+  let dex = emptyDex()
+  if (hasCoreArrays) {
+    dex = {
+      schemaVersion: 2,
+      discoveredTraitIds: data.discoveredTraitIds as string[],
+      discoveredEndingIds: data.discoveredEndingIds as string[],
+      discoveredAchievementIds: Array.isArray(data.discoveredAchievementIds) ? data.discoveredAchievementIds as string[] : [],
+      gamesCompleted,
+    } as HumanDex
+  }
   return {
     ...dex,
     discoveredEndingIds: dex.discoveredEndingIds.map(id => id === 'developer_relations' ? 'technical_community' : id),
+    discoveredAchievementIds: dex.discoveredAchievementIds ?? [],
   }
 }
 

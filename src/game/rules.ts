@@ -9,6 +9,39 @@ const genderOptions: Array<{ id: GenderId; pronoun: string }> = [
   { id: 'nonbinary', pronoun: 'ta' },
 ]
 
+export const achievementIds = [
+  'delivery_convoy',
+  'quite_hungry',
+  'friday_grind_king',
+  'dont_touch_production',
+  'route_planning_master',
+  'fix_bug_grinder',
+  'crud_hero',
+  'test_marathon',
+  'docs_master',
+  'duo_ranked',
+  'tech_standup_show',
+  'release_gatekeeper',
+  'counseling_room',
+  'demo_perpetual',
+  'incident_growth',
+  'cloud_native_pro',
+  'friday_hackathon_resident',
+  'grand_slam',
+  'team_wipe',
+  'comeback_reversal',
+  'chaos_lord',
+  'cyber_zen',
+  'scope_inflation',
+  'social_ceiling',
+  'ten_thousand_whys',
+  'solo_king',
+  'trait_hoarder',
+  'question_barrage',
+  'bug_street_sweeper',
+  'internship_survivor',
+] as const
+
 export function createNewGame(seed: number): GameState {
   let rngState = seed >>> 0 || 0x9e3779b9
   let nameKey: string
@@ -40,8 +73,10 @@ export function createNewGame(seed: number): GameState {
     activityCounts: Object.fromEntries(activities.map(activity => [activity.id, 0])),
     selectedActivityIds: [],
     pendingResults: [],
+    pendingAchievementIds: [],
     resultIndex: 0,
     eventHistory: [],
+    unlockedAchievementIds: [],
     currentSituationId: '',
     situationHistory: [],
     rareSituationCount: 0,
@@ -70,6 +105,7 @@ export function removeSelectedActivity(game: GameState, index: number): GameStat
 
 export function resolveSelectedWeek(game: GameState): GameState {
   if (game.phase !== 'action' || game.selectedActivityIds.length !== 3) return game
+  const scheduledActivityIds = [...game.selectedActivityIds]
   let working: GameState = {
     ...game,
     stats: { ...game.stats },
@@ -133,13 +169,24 @@ export function resolveSelectedWeek(game: GameState): GameState {
 
   working.evidence.weeklyDeltas[game.week - 1] = weeklyEvidence
   working.evidence.weeklyRisks[game.week - 1] = weeklyRisks
+  const pendingAchievementIds = unlockAchievements(working, scheduledActivityIds)
+  const unlockedAchievementIds = [...new Set([...working.unlockedAchievementIds, ...pendingAchievementIds])]
   const endingId = game.week === 24 ? chooseEnding(working).id : undefined
-  return { ...working, phase: 'feedback', pendingResults, resultIndex: 0, selectedActivityIds: [], endingId }
+  return {
+    ...working,
+    phase: 'feedback',
+    pendingResults,
+    pendingAchievementIds,
+    unlockedAchievementIds,
+    resultIndex: 0,
+    selectedActivityIds: [],
+    endingId,
+  }
 }
 
 export function advanceFromFeedback(game: GameState): GameState {
   if (game.phase !== 'feedback' || game.week === 24) return game
-  return prepareSituation({ ...game, phase: 'action', week: game.week + 1, pendingResults: [], resultIndex: 0 })
+  return prepareSituation({ ...game, phase: 'action', week: game.week + 1, pendingResults: [], pendingAchievementIds: [], resultIndex: 0 })
 }
 
 export function revealComplete(game: GameState): GameState {
@@ -450,6 +497,57 @@ function findNextTrait(game: GameState): string | undefined {
   return [...traits]
     .filter(trait => !game.traits.includes(trait.id) && traitCondition(trait.id, game))
     .sort((a, b) => b.priority - a.priority)[0]?.id
+}
+
+function unlockAchievements(game: GameState, scheduledActivityIds: string[]): string[] {
+  const newlyUnlocked: string[] = []
+  const has = (id: string): boolean => game.unlockedAchievementIds.includes(id) || newlyUnlocked.includes(id)
+  const unlock = (id: (typeof achievementIds)[number]): void => {
+    if (!has(id)) newlyUnlocked.push(id)
+  }
+  const counts = game.activityCounts as Record<string, number> & { team_lunch: number; friday_project: number }
+  const count = (activityId: string): number => counts[activityId] ?? 0
+  const thisWeekResults = game.pendingResults
+
+  if (count('team_lunch') >= 4) unlock('delivery_convoy')
+  if (scheduledActivityIds.every(id => id === 'team_lunch')) unlock('quite_hungry')
+  if (count('friday_project') >= 6) unlock('friday_grind_king')
+  if (game.eventHistory.some(event => event.activityId === 'production_incident' && event.outcome === 'criticalFailure')) unlock('dont_touch_production')
+  if (game.eventHistory.filter(event => event.tags.includes('aviation')).length >= 4) unlock('route_planning_master')
+
+  if (count('fix_bug') >= 8) unlock('fix_bug_grinder')
+  if (count('build_feature') >= 8) unlock('crud_hero')
+  if (count('write_tests') >= 8) unlock('test_marathon')
+  if (count('read_docs') >= 8) unlock('docs_master')
+  if (count('pair_programming') >= 8) unlock('duo_ranked')
+  if (count('tech_talk') >= 8) unlock('tech_standup_show')
+  if (count('fix_bug') >= 6 && count('write_tests') >= 6) unlock('release_gatekeeper')
+  if (count('mentor_1on1') >= 8) unlock('counseling_room')
+  if (count('demo') >= 8) unlock('demo_perpetual')
+  if (count('production_incident') >= 8) unlock('incident_growth')
+  if (count('touch_kubernetes') >= 8) unlock('cloud_native_pro')
+  if (count('friday_project') >= 10) unlock('friday_hackathon_resident')
+
+  if (thisWeekResults.length === 3 && thisWeekResults.every(result => result.outcome === 'criticalSuccess')) unlock('grand_slam')
+  if (thisWeekResults.length === 3 && thisWeekResults.every(result => result.outcome === 'failure' || result.outcome === 'criticalFailure')) unlock('team_wipe')
+
+  if (game.eventHistory.some(event => {
+    if (event.outcome !== 'success' && event.outcome !== 'criticalSuccess') return false
+    return game.eventHistory.some(previous => previous.activityId === event.activityId && previous.week >= event.week - 4 && previous.week < event.week && previous.outcome === 'criticalFailure')
+  })) unlock('comeback_reversal')
+
+  if (game.stats.chaos >= 90) unlock('chaos_lord')
+  if (game.week >= 12 && game.stats.chaos <= 15) unlock('cyber_zen')
+  if (game.evidence.risks.scopeCreep >= 10) unlock('scope_inflation')
+  if (game.stats.social >= 85) unlock('social_ceiling')
+  if (game.stats.curiosity >= 85) unlock('ten_thousand_whys')
+  if (game.stats.independence >= 85) unlock('solo_king')
+  if (game.traits.length >= 8) unlock('trait_hoarder')
+  if (game.counters.questionsAsked >= 20) unlock('question_barrage')
+  if (game.counters.bugsFixed >= 20) unlock('bug_street_sweeper')
+  if (game.week === 24) unlock('internship_survivor')
+
+  return newlyUnlocked
 }
 
 function traitCondition(id: string, game: GameState): boolean {
