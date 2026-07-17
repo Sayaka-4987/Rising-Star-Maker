@@ -260,7 +260,7 @@
   "event.touch_kubernetes.failure": "{name}改了配置，却忘记确认 rollout 状态，半小时后才发现新实例一直没启动。",
   "event.touch_kubernetes.success": "{name}先核对环境再提交配置，发布后又检查了实例和日志。整个过程不需要我接手。",
   "event.touch_kubernetes.criticalSuccess": "{name}发现问题出在资源限制，不在应用本身。{pronoun}用最小改动验证了判断，还写好了完整步骤。",
-  "event.friday_project.criticalFailure": "{name}为了自由项目改了一个共享库，却没有通知任何人，下午影响了两位同事的线上环境。我让{pronoun}先恢复脚本，再把经过说清楚。",
+  "event.friday_project.criticalFailure": "{name}为了自由项目改了一个共享库，却没有通知任何人，下午影响了两位同事的线上环境。我让{pronoun}先赶紧恢复，再把经过说清楚。",
   "event.friday_project.failure": "{name}花了半天搭出很多目录，核心功能却没跑起来。复盘时，{pronoun}承认一开始想得太大。",
   "event.friday_project.success": "{name}做了一个能解决自己小问题的工具，功能不多但可以直接用，其中还放了一组飞行航班数据当示例。",
   "event.friday_project.criticalSuccess": "{name}做的飞行模拟器插件原本只是兴趣项目，展示后有三位同事提出愿意一起维护，{pronoun}当天补了参与说明。",
