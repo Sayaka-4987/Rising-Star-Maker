@@ -444,6 +444,7 @@ blockquote { margin: 28px auto; padding: 18px 22px; border-left: 2px solid var(-
 .hint-opportunity { color: var(--green); }
 .hint-risk { color: #d8a47e; }
 .hint-related { color: #b9a1dc; }
+.hint-mystery { color: #c4d8a6; }
 
 .schedule-bar { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; gap: 8px; align-items: stretch; }
 .schedule-slots { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -542,11 +543,12 @@ button.schedule-slot { cursor: pointer; }
 .outcome-success { color: var(--green); }
 .outcome-criticalSuccess { color: var(--amber); box-shadow: 0 0 16px rgba(230, 200, 134, .12); }
 .event-copy { margin: 10px 0 0; color: #c7d5cc; font-size: var(--fs-p5); line-height: 1.6; }
-.delta-hint-strip {
+.result-tag-row {
   margin: 8px 0 0;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
 }
 .delta-hint {
   display: inline-block;
@@ -559,12 +561,6 @@ button.schedule-slot { cursor: pointer; }
 }
 .delta-pos { color: var(--green); border-color: rgba(155, 212, 169, .45); }
 .delta-neg { color: var(--red); border-color: rgba(217, 148, 132, .55); }
-.hobby-hint-strip {
-  margin: 8px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 .hobby-hint {
   display: inline-block;
   padding: 2px 8px;
@@ -585,7 +581,6 @@ button.schedule-slot { cursor: pointer; }
 }
 .situation-impact {
   width: fit-content;
-  margin: 8px 0 0;
   padding: 2px 8px;
   border: 1px solid currentColor;
   background: rgba(255, 255, 255, .025);

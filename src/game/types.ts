@@ -158,6 +158,7 @@ export interface GameState {
   eventHistory: EventResult[]
   unlockedAchievementIds: string[]
   currentSituationId: string
+  weeklyMysteryActivityIds: string[]
   situationHistory: string[]
   rareSituationCount: number
   evidence: EvidenceLedger

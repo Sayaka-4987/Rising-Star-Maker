@@ -40,6 +40,7 @@ function gameForEnding(ending: Ending): GameState {
     counters,
     traits: [...(ending.requiredTraits ?? [])],
     activityCounts,
+    weeklyMysteryActivityIds: [],
     situationHistory: [...new Set([...(ending.requiredSituationIds ?? []), ...Object.keys(ending.situationWeights ?? {})])],
     evidence: { ...game.evidence, totals: evidence },
   }

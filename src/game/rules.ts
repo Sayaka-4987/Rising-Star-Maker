@@ -45,6 +45,18 @@ export const achievementIds = [
 
 const TRAIT_CONFIRMATION_WEEKS = 3
 const TRAIT_PROGRESS_DECAY = 1
+const HOBBY_EVIDENCE_IDS: EvidenceId[] = [
+  'aviation',
+  'gaming',
+  'robotics',
+  'music',
+  'anime',
+  'fitness',
+  'photography',
+  'finance',
+  'volunteering',
+  'foodCulture',
+]
 
 export function createNewGame(seed: number): GameState {
   let rngState = seed >>> 0 || 0x9e3779b9
@@ -82,6 +94,7 @@ export function createNewGame(seed: number): GameState {
     eventHistory: [],
     unlockedAchievementIds: [],
     currentSituationId: '',
+    weeklyMysteryActivityIds: [],
     situationHistory: [],
     rareSituationCount: 0,
     evidence: {
@@ -112,6 +125,7 @@ export function removeSelectedActivity(game: GameState, index: number): GameStat
 export function resolveSelectedWeek(game: GameState): GameState {
   if (game.phase !== 'action' || game.selectedActivityIds.length !== 3) return game
   const scheduledActivityIds = [...game.selectedActivityIds]
+  const mysteryActivityIds = new Set(game.weeklyMysteryActivityIds)
   let working: GameState = {
     ...game,
     stats: { ...game.stats },
@@ -147,6 +161,11 @@ export function resolveSelectedWeek(game: GameState): GameState {
     if (!event) throw new Error(`Missing ${outcome} event for ${activityId}`)
     let eventTags = event.tags ?? []
     ;[eventTags, working.rngState] = resolveEventTagsForOutcome(working.rngState, outcome, eventTags, working.evidence.totals)
+    if (mysteryActivityIds.has(activityId) && (outcome === 'success' || outcome === 'criticalSuccess')) {
+      let randomHobbyTag: EvidenceId
+      ;[randomHobbyTag, working.rngState] = pickOne(working.rngState, HOBBY_EVIDENCE_IDS)
+      eventTags = [...new Set([...eventTags, randomHobbyTag])]
+    }
     let textKey
     ;[textKey, working.rngState] = pickOne(working.rngState, event.textKeys)
     applyDeltas(working.stats, event.statDeltas)
@@ -334,13 +353,36 @@ function prepareSituation(game: GameState): GameState {
   const kindCandidates = candidates.filter(candidate => candidate.kind === selectedKind.kind)
   let selected: WeeklySituation
   ;[selected, rngState] = weightedPick(rngState, kindCandidates)
+  let mysteryCountPick: { count: number; weight: number }
+  ;[mysteryCountPick, rngState] = weightedPick(rngState, [
+    { count: 1, weight: 25 },
+    { count: 2, weight: 55 },
+    { count: 3, weight: 20 },
+  ])
+  let weeklyMysteryActivityIds: string[]
+  ;[weeklyMysteryActivityIds, rngState] = pickUniqueActivities(rngState, mysteryCountPick.count)
   return {
     ...game,
     rngState,
     currentSituationId: selected.id,
+    weeklyMysteryActivityIds,
     situationHistory: [...game.situationHistory, selected.id],
     rareSituationCount: game.rareSituationCount + (selected.kind === 'rare' ? 1 : 0),
   }
+}
+
+function pickUniqueActivities(rngState: number, count: number): [string[], number] {
+  const pool = activities.map(activity => activity.id)
+  const picked: string[] = []
+  const limit = Math.max(0, Math.min(count, pool.length))
+  while (picked.length < limit) {
+    const [index, nextState] = randomInt(rngState, 0, pool.length - 1)
+    rngState = nextState
+    const [selected] = pool.splice(index, 1)
+    if (!selected) continue
+    picked.push(selected)
+  }
+  return [picked, rngState]
 }
 
 function evidenceForResult(

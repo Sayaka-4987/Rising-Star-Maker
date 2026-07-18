@@ -229,6 +229,7 @@ function renderResult(state: GameState): string {
         ${state.pendingResults.map(result => {
           const activity = activityById(result.activityId)
           const unlocked = result.unlockedTraitId ? traits.find(trait => trait.id === result.unlockedTraitId) : undefined
+          const resultTagChips = `${renderDeltaHintChips(result)}${renderHobbyHintChips(result, state)}${renderSituationImpactChip(result)}`
           return `<article class="result-card result-card-${result.outcome}">
             <header>
               <span class="result-icon">${e(activity?.icon ?? '[ ]')}</span>
@@ -236,9 +237,7 @@ function renderResult(state: GameState): string {
               <span class="outcome outcome-${result.outcome}">${e(t(`outcome.${result.outcome}`))}</span>
             </header>
             <p class="event-copy">${e(localizedEventText(result, state))}</p>
-            ${renderDeltaHintStrip(result)}
-            ${renderHobbyHintStrip(result)}
-            ${result.situationHint ? `<p class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.effect.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.effect.${result.situationHint}`))}"><span>${e(situationImpactSymbol(result.situationHint))}</span><span>${e(t(`situation.effect.${result.situationHint}`))}</span></p>` : ''}
+            ${resultTagChips.length > 0 ? `<div class="result-tag-row">${resultTagChips}</div>` : ''}
             ${unlocked ? `<div class="trait-unlock compact">
               <span>${e(t('label.unlocked'))}</span>
               <strong>${e(t(unlocked.nameKey))}</strong>
@@ -376,9 +375,10 @@ function activityCard(id: string, state: GameState): string {
   if (!activity) return ''
   const selectedCount = state.selectedActivityIds.filter(selectedId => selectedId === id).length
   const hint = hintForActivity(situationById(state.currentSituationId), id)
+  const isMysteryActivity = state.weeklyMysteryActivityIds.includes(id)
   return `<button class="activity-card ${selectedCount > 0 ? 'selected' : ''}" data-action="select-activity" data-id="${e(id)}" ${state.selectedActivityIds.length === 3 ? 'disabled' : ''}>
     <span class="activity-icon">${e(activity.icon)}</span>
-    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}${hint ? `<mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}</strong><small>${e(t(activity.descriptionKey))}</small></span>
+    <span><strong>${e(t(activity.labelKey))}${selectedCount > 0 ? `<em>×${selectedCount}</em>` : ''}${hint ? `<mark class="situation-hint hint-${e(hint)}">${e(t(`situation.hint.${hint}`))}</mark>` : ''}${isMysteryActivity ? `<mark class="situation-hint hint-mystery">${e(t('situation.hint.mystery'))}</mark>` : ''}</strong><small>${e(t(activity.descriptionKey))}</small></span>
   </button>`
 }
 
@@ -464,7 +464,7 @@ function situationImpactSymbol(hint: SituationHint): string {
   return '➖'
 }
 
-function renderDeltaHintStrip(result: EventResult): string {
+function renderDeltaHintChips(result: EventResult): string {
   const activity = activityById(result.activityId)
   const event = eventById.get(result.eventId)
   if (!activity || !event) return ''
@@ -487,8 +487,7 @@ function renderDeltaHintStrip(result: EventResult): string {
     .map(([id, value]) => renderSingleDeltaHint(id, value))
     .filter(Boolean)
 
-  if (hints.length === 0) return ''
-  return `<div class="delta-hint-strip" aria-label="${e(t('label.deltaHint'))}">${hints.join('')}</div>`
+  return hints.join('')
 }
 
 function renderSingleDeltaHint(rawKey: string, value: number): string {
@@ -510,16 +509,25 @@ function renderSingleDeltaHint(rawKey: string, value: number): string {
   return `<span class="delta-hint delta-${tone}">${e(t(labelKey))}${e(symbol)}</span>`
 }
 
-function renderHobbyHintStrip(result: EventResult): string {
+function renderHobbyHintChips(result: EventResult, state: GameState): string {
   const hobbyTags = result.tags.filter(tag => HOBBY_TAG_IDS.includes(tag))
   if (hobbyTags.length === 0) {
-    return `<div class="hobby-hint-strip" aria-label="${e(t('label.hobbyHint'))}"><span class="hobby-hint hobby-hint-unknown">? ${e(t('label.hobbyUnknown'))}</span></div>`
+    return `<span class="hobby-hint hobby-hint-unknown" aria-label="${e(t('label.hobbyHint'))}">? ${e(t('label.hobbyUnknown'))}</span>`
   }
 
-  const hints = hobbyTags
-    .map(tag => `<span class="hobby-hint hobby-hint-gain">${e(t('label.hobbyGain'))} · ${e(t(`evidence.${tag}`))}</span>`)
+  const hints = [...new Set(hobbyTags)]
+    .map(tag => {
+      const total = state.evidence.totals[tag as keyof typeof state.evidence.totals] ?? 0
+      const tierKey = total >= 10 ? 'label.hobbyGain.deep' : total >= 5 ? 'label.hobbyGain.focus' : 'label.hobbyGain.spark'
+      return `<span class="hobby-hint hobby-hint-gain" aria-label="${e(t('label.hobbyHint'))}">${e(t(tierKey))} · ${e(t(`evidence.${tag}`))}</span>`
+    })
     .join('')
-  return `<div class="hobby-hint-strip" aria-label="${e(t('label.hobbyHint'))}">${hints}</div>`
+  return hints
+}
+
+function renderSituationImpactChip(result: EventResult): string {
+  if (!result.situationHint) return ''
+  return `<span class="situation-impact hint-${e(result.situationHint)}" title="${e(t(`situation.effect.${result.situationHint}`))}" aria-label="${e(t('label.situationEffect'))}: ${e(t(`situation.effect.${result.situationHint}`))}"><span>${e(situationImpactSymbol(result.situationHint))}</span><span>${e(t(`situation.effect.${result.situationHint}`))}</span></span>`
 }
 
 const HOBBY_TAG_IDS = [

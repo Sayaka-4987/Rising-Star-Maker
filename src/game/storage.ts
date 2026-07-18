@@ -15,6 +15,7 @@ export function loadGame(): GameState | null {
       endingId: game.endingId === 'developer_relations' ? 'technical_community' : game.endingId,
       pendingAchievementIds: game.pendingAchievementIds ?? [],
       unlockedAchievementIds: game.unlockedAchievementIds ?? [],
+      weeklyMysteryActivityIds: game.weeklyMysteryActivityIds ?? [],
       evidence: normalizedEvidence,
       traitProgress: game.traitProgress ?? {},
       endingRevealed: game.endingRevealed ?? false,
