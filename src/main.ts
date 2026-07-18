@@ -326,7 +326,8 @@ function renderEndingContent(state: GameState): string {
   const ending = endings.find(item => item.id === state.endingId)
   if (!ending) return ''
   const notable = state.eventHistory.filter(item => item.highlight).slice(-5)
-  const evidence = notable.length >= 3 ? notable : state.eventHistory.slice(-5)
+  const evidencePool = notable.length >= 3 ? notable : state.eventHistory
+  const evidence = uniqueRecentEvents(evidencePool, state, 5)
   const summaryKey = ending.summaryKeys[state.seed % 2] as string
   const nearby = nearbyEndings(state)
   return `<section class="embedded-ending">
@@ -346,6 +347,22 @@ function renderEndingContent(state: GameState): string {
         ? `<ul>${nearby.map(item => `<li><strong>${e(t(item.nameKey))}：</strong>${e(t(item.hintKey))}</li>`).join('')}</ul>`
         : `<p>${e(t('ending.nextRun.generic'))}</p>`}</section>
     </section>`
+}
+
+function uniqueRecentEvents(events: EventResult[], state: GameState, limit: number): EventResult[] {
+  const seen = new Set<string>()
+  const unique: EventResult[] = []
+
+  for (let index = events.length - 1; index >= 0 && unique.length < limit; index -= 1) {
+    const event = events[index]
+    if (!event) continue
+    const text = localizedEventText(event, state)
+    if (seen.has(text)) continue
+    seen.add(text)
+    unique.push(event)
+  }
+
+  return unique.reverse()
 }
 
 function renderDex(): string {
