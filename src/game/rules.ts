@@ -244,7 +244,17 @@ export function scoreEnding(game: GameState, ending: Ending, ignoreRequirements 
 export function chooseEnding(game: GameState): Ending {
   const noReturnOffer = endings.find(ending => ending.id === 'no_return_offer')
   const lateBurden = failureBurden(game, scaleLegacyWeek(8))
-  if (noReturnOffer && legacyCount(lateBurden) >= 14) return noReturnOffer
+  const betterOfferEnding = endings.find(ending => ending.id === 'left_for_better_offer')
+  if (
+    betterOfferEnding
+    && betterOfferSignal(game)
+    && deterministicChance(game, 'left_for_better_offer') < 0.18
+  ) return betterOfferEnding
+
+  const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
+  const strongestSpecialtyEnding = rankEndings(game, eligible).find(ending => rarityRank(ending.rarity) >= rarityRank('epic'))
+  if (noReturnOffer && legacyCount(lateBurden) >= 14 && !strongestSpecialtyEnding) return noReturnOffer
+
   const internshipExtended = endings.find(ending => ending.id === 'internship_extended')
   const earlyBurden = failureBurden(game) - lateBurden
   if (
@@ -255,14 +265,6 @@ export function chooseEnding(game: GameState): Ending {
     && legacyCount(recentPositiveEvidence(game)) >= 12
   ) return internshipExtended
 
-  const betterOfferEnding = endings.find(ending => ending.id === 'left_for_better_offer')
-  if (
-    betterOfferEnding
-    && betterOfferSignal(game)
-    && deterministicChance(game, 'left_for_better_offer') < 0.18
-  ) return betterOfferEnding
-
-  const eligible = endings.filter(ending => !['no_return_offer', 'internship_extended', 'left_for_better_offer'].includes(ending.id) && Number.isFinite(scoreEnding(game, ending)))
   if (eligible.length === 0) return endings.find(ending => ending.id === 'software') as Ending
 
   const highestRarity = Math.max(...eligible.map(ending => rarityRank(ending.rarity)))

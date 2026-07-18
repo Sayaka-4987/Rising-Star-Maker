@@ -125,6 +125,22 @@ describe('game rules', () => {
     expect(chooseEnding({ ...game, eventHistory: failedHistory }).id).not.toBe('no_return_offer')
   })
 
+  it('does not let no-return-offer override a qualified interest ending', () => {
+    const indieEnding = endings.find(ending => ending.id === 'indie_game_creator') as Ending
+    const game = gameForEnding(indieEnding)
+    const eventHistory = Array.from({ length: 7 }, (_, index) => ({
+      eventId: 'friday_project',
+      activityId: 'friday_project',
+      textKey: '',
+      text: '',
+      outcome: 'failure' as const,
+      tags: ['gaming'],
+      highlight: false,
+      week: 9 + Math.floor(index / 2),
+    }))
+    expect(chooseEnding({ ...game, eventHistory }).id).toBe('indie_game_creator')
+  })
+
   it('extends an internship after a difficult start and measurable late recovery', () => {
     const game = play(4987)
     const eventHistory = game.eventHistory.map((event, index) => ({
